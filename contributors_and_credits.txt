@@ -1,0 +1,8 @@
+The following people contributed to the development of this package:
+
+CERN contributors:
+ - J. W. Dilly
+ - C. E. Montanari
+
+External contributors:
+ - P. Majoros

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "xnlbd.__version__"}
+
+[tool.isort]
+profile = "black"
+
+[project]
+name = "xnlbd"
+description = "Nonlinear beam dynamics tools for Xsuite"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    { name = "Dora E. Veres (github.com/deveres99)", email = "dora.erzsebet.veres@cern.ch" }
+]
+
+requires-python = ">=3.9"
+dependencies = [
+    "xobjects>=0.4.1",
+    "xdeps>=0.6.0",
+    "xpart>=0.18.2",
+    "xtrack>=0.61.0",
+    "numpy",
+    "pandas",
+    "scipy",
+    "sympy",
+]
+
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "mypy",
+    "isort",
+    "pandas-stubs",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/deveres99/xnlbd"
