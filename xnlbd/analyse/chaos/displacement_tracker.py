@@ -4,9 +4,9 @@ import numpy as np
 import xtrack as xt
 from tqdm.auto import tqdm
 
-from generic_writer import GenericWriter
-from ghost_particle_manager import GhostParticleManager
-from tools import birkhoff_weights
+from .generic_writer import GenericWriter
+from .ghost_particle_manager import GhostParticleManager
+from .tools import birkhoff_weights
 
 
 def track_displacement(

@@ -6,8 +6,8 @@ import xtrack.twiss as xtw
 
 from tqdm.auto import tqdm
 
-from generic_writer import GenericWriter
-from normed_particles import NormedParticles
+from .generic_writer import GenericWriter
+from .normed_particles import NormedParticles
 
 
 def reverse_error_method(
