@@ -1,5 +1,5 @@
-#ifndef XCHAOS_GET_DISP_AND_DIR_H
-#define XCHAOS_GET_DISP_AND_DIR_H
+#ifndef XNLBD_GET_DISP_AND_DIR_H
+#define XNLBD_GET_DISP_AND_DIR_H
 
 /*gpukern*/
 void get_disp_and_dir(ParticlesData part_a, ParticlesData part_b, GhostParticleManagerData manager, const int64_t nelem)
@@ -13,7 +13,17 @@ void get_disp_and_dir(ParticlesData part_a, ParticlesData part_b, GhostParticleM
         int64_t idx_b = GhostParticleManagerData_get_argsort_b(manager, idx_a);
 
         // if either of the particles is invalid, skip it
-        if (ParticlesData_get_state(part_a, ii) <= 1 || ParticlesData_get_state(part_b, idx_b) <= 1){}
+        if (ParticlesData_get_state(part_a, ii) <= 0 || ParticlesData_get_state(part_b, idx_b) <= 0){
+            // populate with NaNs
+            GhostParticleManagerData_set_module(manager, idx_a, NAN);
+
+            GhostParticleManagerData_set_displacement_x(manager, idx_a, NAN);
+            GhostParticleManagerData_set_displacement_px(manager, idx_a, NAN);
+            GhostParticleManagerData_set_displacement_y(manager, idx_a, NAN);
+            GhostParticleManagerData_set_displacement_py(manager, idx_a, NAN);
+            GhostParticleManagerData_set_displacement_zeta(manager, idx_a, NAN);
+            GhostParticleManagerData_set_displacement_ptau(manager, idx_a, NAN);
+        }
         else{
             double displacement_x = ParticlesData_get_x(part_b, idx_b) - ParticlesData_get_x(part_a, ii);
             double displacement_px = ParticlesData_get_px(part_b, idx_b) - ParticlesData_get_px(part_a, ii);
@@ -25,16 +35,16 @@ void get_disp_and_dir(ParticlesData part_a, ParticlesData part_b, GhostParticleM
             double module = sqrt(displacement_x * displacement_x + displacement_px * displacement_px + displacement_y * displacement_y + displacement_py * displacement_py + displacement_zeta * displacement_zeta + displacement_ptau * displacement_ptau);
 
             // set the info back to the ghost manager
-            GhostParticleManagerData_set_module(manager, argsort_a, module);
+            GhostParticleManagerData_set_module(manager, idx_a, module);
 
-            GhostParticleManagerData_set_displacement_x(manager, argsort_a, displacement_x / module);
-            GhostParticleManagerData_set_displacement_px(manager, argsort_a, displacement_px / module);
-            GhostParticleManagerData_set_displacement_y(manager, argsort_a, displacement_y / module);
-            GhostParticleManagerData_set_displacement_py(manager, argsort_a, displacement_py / module);
-            GhostParticleManagerData_set_displacement_zeta(manager, argsort_a, displacement_zeta / module);
-            GhostParticleManagerData_set_displacement_ptau(manager, argsort_a, displacement_ptau / module);
+            GhostParticleManagerData_set_displacement_x(manager, idx_a, displacement_x / module);
+            GhostParticleManagerData_set_displacement_px(manager, idx_a, displacement_px / module);
+            GhostParticleManagerData_set_displacement_y(manager, idx_a, displacement_y / module);
+            GhostParticleManagerData_set_displacement_py(manager, idx_a, displacement_py / module);
+            GhostParticleManagerData_set_displacement_zeta(manager, idx_a, displacement_zeta / module);
+            GhostParticleManagerData_set_displacement_ptau(manager, idx_a, displacement_ptau / module);
         }
     } // end_vectorize
 }
 
-#endif /* XCHAOS_GET_DISP_AND_DIR_H */
+#endif /* XNLBD_GET_DISP_AND_DIR_H */

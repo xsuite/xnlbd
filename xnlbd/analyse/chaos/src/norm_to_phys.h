@@ -1,5 +1,5 @@
-#ifndef XCHAOS_NORM_TO_PHYS_H
-#define XCHAOS_NORM_TO_PHYS_H
+#ifndef XNLBD_NORM_TO_PHYS_H
+#define XNLBD_NORM_TO_PHYS_H
 
 /*gpukern*/
 void norm_to_phys(ParticlesData part, NormedParticlesData norm_part, const int64_t nelem)
@@ -44,4 +44,4 @@ void norm_to_phys(ParticlesData part, NormedParticlesData norm_part, const int64
     } // end_vectorize
 }
 
-#endif /* XCHAOS_NORM_TO_PHYS_H */
+#endif /* XNLBD_NORM_TO_PHYS_H */

@@ -125,7 +125,10 @@ def track_displacement(
 
         elif event == "renormalize":
             for i, (stored_log_module, names) in enumerate(
-                zip(log_module_storage, gpm.renormalize_distances_and_yield())
+                zip(
+                    log_module_storage,
+                    gpm.renormalize_distances_and_yield(renorm_module),
+                )
             ):
                 stored_log_module += np.log10(gpm.module / renorm_module)
 
@@ -134,12 +137,12 @@ def track_displacement(
     particle_argsort = np.argsort(gpm._part.particle_id)
     out.write_data(
         "ref_particles_data/at_turn",
-        gpm._context.nparray_from_context_array(gpm.part.at_turn)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.at_turn)[particle_argsort],
         overwrite=overwrite,
     )
     out.write_data(
         "ref_particles_data/state",
-        gpm._context.nparray_from_context_array(gpm.part.state)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.state)[particle_argsort],
         overwrite=overwrite,
     )
 
@@ -202,13 +205,13 @@ def track_displacement_birkhoff(
         for t in n_realignments
     ]
     birk_log_module_storage = gpm._context.nplike_array_type(
-        (len(turns_to_sample), len(gpm._ghost_name), len(gpm.part.particle_id))
+        (len(turns_to_sample), len(gpm._ghost_name), len(gpm._part.particle_id))
     )
     birk_log_module_storage[:] = 0.0
 
     # Elements for the no birkhoff case
     log_module_storage = gpm._context.nplike_array_type(
-        (len(gpm._ghost_name), len(gpm.part.particle_id))
+        (len(gpm._ghost_name), len(gpm._part.particle_id))
     )
     log_module_storage[:] = 0.0
 
@@ -223,7 +226,9 @@ def track_displacement_birkhoff(
             pbar.update(delta_turn)
 
         if event == "renormalize":
-            for i, name in enumerate(gpm.renormalize_distances_and_yield()):
+            for i, name in enumerate(
+                gpm.renormalize_distances_and_yield(renorm_module)
+            ):
                 log_module_storage[i] += np.log10(gpm.module / renorm_module)
 
                 for s_idx, sample in enumerate(turns_to_sample):
@@ -293,11 +298,11 @@ def track_displacement_birkhoff(
     particle_argsort = np.argsort(gpm._part.particle_id)
     out.write_data(
         "ref_particles_data/at_turn",
-        gpm._context.nparray_from_context_array(gpm.part.at_turn)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.at_turn)[particle_argsort],
         overwrite=overwrite,
     )
     out.write_data(
         "ref_particles_data/state",
-        gpm._context.nparray_from_context_array(gpm.part.state)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.state)[particle_argsort],
         overwrite=overwrite,
     )

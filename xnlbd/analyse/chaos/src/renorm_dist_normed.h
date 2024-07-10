@@ -1,5 +1,5 @@
-#ifndef XCHAOS_RENORM_DIST_NORMED_H
-#define XCHAOS_RENORM_DIST_NORMED_H
+#ifndef XNLBD_RENORM_DIST_NORMED_H
+#define XNLBD_RENORM_DIST_NORMED_H
 
 /*gpukern*/
 void renorm_dist_normed(NormedParticlesData part, GhostParticleManagerData manager, const int64_t nelem)
@@ -21,4 +21,4 @@ void renorm_dist_normed(NormedParticlesData part, GhostParticleManagerData manag
     } // end_vectorize
 }
 
-#endif /* XCHAOS_RENORM_DIST_H */
+#endif /* XNLBD_RENORM_DIST_H */
