@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from scipy.special import factorial  # type: ignore[import-untyped]
-from xtrack import Line  # type: ignore[import-not-found]
+from xtrack import Line  # type: ignore[import-untyped]
 
 
 def _i_pow(n: int) -> complex:

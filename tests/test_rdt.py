@@ -1,7 +1,7 @@
 import pathlib
 
 import numpy as np
-import xtrack as xt  # type: ignore[import-not-found]
+import xtrack as xt  # type: ignore[import-untyped]
 from scipy.special import factorial  # type: ignore[import-untyped]
 
 from xnlbd.analyse.rdt import calculate_rdts
