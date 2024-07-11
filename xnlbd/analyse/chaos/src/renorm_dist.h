@@ -9,7 +9,7 @@ void renorm_dist(ParticlesData part, GhostParticleManagerData manager, const int
         double module = GhostParticleManagerData_get_module(manager, ii);
 
         // if the state of the particle is not valid, skip it
-        if (ParticlesData_get_state(part, idx_b) <= 1){}
+        if (ParticlesData_get_state(part, idx_b) <= 0){}
         else{
             ParticlesData_set_x(part, idx_b, ParticlesData_get_x(part, idx_b) + GhostParticleManagerData_get_displacement_x(manager, ii) * module);
             ParticlesData_set_px(part, idx_b, ParticlesData_get_px(part, idx_b) + GhostParticleManagerData_get_displacement_px(manager, ii) * module);
