@@ -137,7 +137,9 @@ def track_displacement(
     particle_argsort = np.argsort(gpm._part.particle_id)
     out.write_data(
         "ref_particles_data/at_turn",
-        gpm._context.nparray_from_context_array(gpm._part.at_turn).copy()[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.at_turn).copy()[
+            particle_argsort
+        ],
         overwrite=overwrite,
     )
     out.write_data(
