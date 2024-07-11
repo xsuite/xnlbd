@@ -101,7 +101,7 @@ def track_displacement(
                     f"fli_over_n/{name}/{current_turn}",
                     gpm._context.nparray_from_context_array(
                         log_module_to_save / current_turn
-                    ),
+                    ).copy(),
                     overwrite=overwrite,
                 )
 
@@ -119,7 +119,7 @@ def track_displacement(
                     )
                     out.write_data(
                         f"direction/{name}/{full_suffix}/{current_turn}",
-                        gpm._context.nparray_from_context_array(value),
+                        gpm._context.nparray_from_context_array(value).copy(),
                         overwrite=overwrite,
                     )
 
@@ -137,12 +137,14 @@ def track_displacement(
     particle_argsort = np.argsort(gpm._part.particle_id)
     out.write_data(
         "ref_particles_data/at_turn",
-        gpm._context.nparray_from_context_array(gpm._part.at_turn)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.at_turn).copy()[particle_argsort],
         overwrite=overwrite,
     )
     out.write_data(
         "ref_particles_data/state",
-        gpm._context.nparray_from_context_array(gpm._part.state)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.state).copy()[
+            particle_argsort
+        ],
         overwrite=overwrite,
     )
 
@@ -271,12 +273,12 @@ def track_displacement_birkhoff(
                     f"fli_over_n_nobirk/{name}/{current_turn}",
                     gpm._context.nparray_from_context_array(
                         log_module_storage[i] / current_turn
-                    ),
+                    ).copy(),
                     overwrite=overwrite,
                 )
                 out.write_data(
                     f"fli_over_n_birk/{name}/{current_turn}",
-                    gpm._context.nparray_from_context_array(stored_log_module),
+                    gpm._context.nparray_from_context_array(stored_log_module).copy(),
                     overwrite=overwrite,
                 )
 
@@ -298,11 +300,15 @@ def track_displacement_birkhoff(
     particle_argsort = np.argsort(gpm._part.particle_id)
     out.write_data(
         "ref_particles_data/at_turn",
-        gpm._context.nparray_from_context_array(gpm._part.at_turn)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.at_turn).copy()[
+            particle_argsort
+        ],
         overwrite=overwrite,
     )
     out.write_data(
         "ref_particles_data/state",
-        gpm._context.nparray_from_context_array(gpm._part.state)[particle_argsort],
+        gpm._context.nparray_from_context_array(gpm._part.state).copy()[
+            particle_argsort
+        ],
         overwrite=overwrite,
     )
