@@ -49,47 +49,47 @@ def test_normed_particles(test_context):
     assert np.allclose(
         test_context.nparray_from_context_array(part.x),
         test_context.nparray_from_context_array(ref_part.x),
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part.y),
         test_context.nparray_from_context_array(ref_part.y),
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part.zeta),
         test_context.nparray_from_context_array(ref_part.zeta),
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part.px),
         test_context.nparray_from_context_array(ref_part.px),
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part.py),
         test_context.nparray_from_context_array(ref_part.py),
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part.delta),
         test_context.nparray_from_context_array(ref_part.delta),
-        rtol=1e-8,
+        rtol=1e-12,
     )
 
     # check that the normalized particles are still the same
     assert np.allclose(
         test_context.nparray_from_context_array(part_norm.x_norm),
         x_norm_coord,
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part_norm.y_norm),
         y_norm_coord,
-        rtol=1e-8,
+        rtol=1e-12,
     )
     assert np.allclose(
         test_context.nparray_from_context_array(part_norm.zeta_norm),
         zeta_norm_coord,
-        rtol=1e-8,
+        rtol=1e-12,
     )
