@@ -332,6 +332,13 @@ class ModulatedHenonmap(BeamElement):
         Number of tunes available in the tune arrays, if a particle is tracked
         above that number, a mod operator is used to roll-over the array. If the
         particle has negative at_turn value, the array is rolled backwards.
+    n_par_multipoles: int
+        Number of different multipole strengths provided. It is evaluated 
+        automatically from the length of the multipole_coeffs array provided.
+        It is used then at runtime to apply the same loop of strenghts to the
+        according turns via modulo operator. If only a single multipole strength
+        is provided, this value is 1, and the same strength is applied to all 
+        turns.
     norm: int
         1 if input coordinates are already normalised, 0 if not.
 
