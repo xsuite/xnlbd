@@ -19,7 +19,10 @@ class GhostParticleManager(xo.HybridClass):
 
     _cname = "GhostParticleManagerData"
 
-    size_vars = ((xo.Int64, "_capacity"),)
+    operational_vars = (
+        (xo.Int64, "_capacity"),
+        (xo.Float64, "target_module"),
+    )
 
     managing_vars = (
         (xo.Int64, "idx_a"),
@@ -48,7 +51,7 @@ class GhostParticleManager(xo.HybridClass):
     )
 
     _xofields = {
-        **{nn: tt for tt, nn in size_vars},
+        **{nn: tt for tt, nn in operational_vars},
         **{nn: tt[:] for tt, nn in managing_vars},
         **{nn: tt[:] for tt, nn in phys_vars},
         **{nn: tt[:] for tt, nn in norm_vars},
@@ -82,6 +85,7 @@ class GhostParticleManager(xo.HybridClass):
         ),
         "renorm_dist": xo.Kernel(
             args=[
+                xo.Arg(xt.Particles._XoStruct, name="ref_part"),
                 xo.Arg(xt.Particles._XoStruct, name="part"),
                 xo.Arg(xo.ThisClass, name="manager"),
                 xo.Arg(xo.Int64, name="nelem"),
@@ -90,6 +94,7 @@ class GhostParticleManager(xo.HybridClass):
         ),
         "renorm_dist_normed": xo.Kernel(
             args=[
+                xo.Arg(NormedParticles._XoStruct, name="ref_part"),
                 xo.Arg(NormedParticles._XoStruct, name="part"),
                 xo.Arg(xo.ThisClass, name="manager"),
                 xo.Arg(xo.Int64, name="nelem"),
@@ -452,6 +457,7 @@ class GhostParticleManager(xo.HybridClass):
             If get_data is True, return the module and direction of the displacement
             of the ghost particles
         """
+        self.target_module = module
         if get_data:
             module_list, direction_list = self.get_module_and_direction()
 
@@ -467,8 +473,9 @@ class GhostParticleManager(xo.HybridClass):
                     manager=self,
                     nelem=len(self.idx_a),
                 )
-                self.module = module - self.module
+                # self.module = module - self.module
                 self._context.kernels.renorm_dist(
+                    ref_part=self._part,
                     part=ghost_part,
                     manager=self,
                     nelem=len(self.idx_a),
@@ -488,8 +495,9 @@ class GhostParticleManager(xo.HybridClass):
                     manager=self,
                     nelem=len(self.idx_a),
                 )
-                self.module = module - self.module
+                # self.module = module - self.module
                 self._context.kernels.renorm_dist_normed(
+                    ref_part=self._normed_part,
                     part=self._ghost_normed_part[i],
                     manager=self,
                     nelem=len(self.idx_a),
@@ -572,6 +580,7 @@ class GhostParticleManager(xo.HybridClass):
             Name of the ghost particle
         
         """
+        self.target_module = module
         if self._use_norm_coord is False:
             self.idx_a = self._part.particle_id
             self.argsort_a = np.argsort(self.idx_a)
@@ -585,13 +594,14 @@ class GhostParticleManager(xo.HybridClass):
                     nelem=len(self.idx_a),
                 )
                 # Now the arrays are populated, yield the name of the ghost particle
-                yield self._ghost_name[i]
-                self.module = module - self.module
+                # self.module = module - self.module
                 self._context.kernels.renorm_dist(
+                    ref_part=self._part,
                     part=ghost_part,
                     manager=self,
                     nelem=len(self.idx_a),
                 )
+                yield self._ghost_name[i]
         else:
             self._normed_part.phys_to_norm(self._part)
             for pp, pnorm in zip(self._ghost_part, self._ghost_normed_part):
@@ -608,9 +618,9 @@ class GhostParticleManager(xo.HybridClass):
                     nelem=len(self.idx_a),
                 )
                 # Now the arrays are populated, yield the name of the ghost particle
-                yield self._ghost_name[i]
-                self.module = module - self.module
+                # self.module = module - self.module
                 self._context.kernels.renorm_dist_normed(
+                    ref_part=self._normed_part,
                     part=self._ghost_normed_part[i],
                     manager=self,
                     nelem=len(self.idx_a),
@@ -619,3 +629,4 @@ class GhostParticleManager(xo.HybridClass):
                 self._ghost_part[i] = self._ghost_normed_part[i].norm_to_phys(
                     self._ghost_part[i]
                 )
+                yield self._ghost_name[i]
