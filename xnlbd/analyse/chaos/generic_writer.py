@@ -134,7 +134,10 @@ class H5pyWriter(GenericWriter):
                         pass
                 return data
 
-            # if the dataset is a group, raise an error
+            # if the dataset is a group, 
+            # print the keys to help the user
+            print(f"Keys in group {dataset_name}: {f[dataset_name].keys()}")
+            # raise an error
             raise ValueError(
                 f"Dataset {dataset_name} is a group, not a dataset, in file {self.filename}"
             )
@@ -244,14 +247,16 @@ class LocalWriter(GenericWriter):
         for key in dataset_name_list:
             if key not in d:
                 raise ValueError(
-                    f"Dataset {dataset_name} does not exist in dictionary {self.data}"
+                    f"Dataset {dataset_name} does not exist in dictionary {self.filename}"
                 )
             d = d[key]
 
         # if this is still a dictionary, raise an error
         if isinstance(d, dict):
+            # print the dictionary keys to help the user
+            print(f"Keys in dictionary {dataset_name}: {d.keys()}")
             raise ValueError(
-                f"Dataset {dataset_name} is a group, not a dataset, in dictionary {self.data}"
+                f"Dataset {dataset_name} is a group, not a dataset, in dictionary {self.filename}"
             )
         return d
 
@@ -307,4 +312,4 @@ class LocalWriter(GenericWriter):
         if isinstance(self.data[key], dict):
             return list(self.data[key].keys())
         # if it is a dataset raise an error
-        raise ValueError(f"Dataset {key} is a dataset, not a group, in dictionary {self.data}")
+        raise ValueError(f"Dataset {key} is a dataset, not a group, in dictionary {self.filename}")
