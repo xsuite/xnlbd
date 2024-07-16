@@ -1,6 +1,11 @@
 #ifndef XNLBD_GET_DISP_AND_DIR_H
 #define XNLBD_GET_DISP_AND_DIR_H
 
+#include <math.h> //only_for_context cpu_serial cpu_openmp
+#ifndef NAN
+#define NAN (0.0f / 0.0f)
+#endif
+
 /*gpukern*/
 void get_disp_and_dir(ParticlesData part_a, ParticlesData part_b, GhostParticleManagerData manager, const int64_t nelem)
 {
