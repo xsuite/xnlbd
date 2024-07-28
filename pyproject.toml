@@ -8,6 +8,11 @@ version = {attr = "xnlbd.__version__"}
 [tool.isort]
 profile = "black"
 
+[tool.mypy]
+exclude = [
+    "examples",
+]
+
 [project]
 name = "xnlbd"
 description = "Nonlinear beam dynamics tools for Xsuite"
