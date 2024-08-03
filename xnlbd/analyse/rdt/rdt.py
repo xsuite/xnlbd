@@ -95,10 +95,10 @@ def _create_twiss_data(line: Line) -> dict[str, Union[float, np.ndarray]]:
         j_pattern = re.compile(r"k\d+sl")
         ks_keys = [s for s in twiss_keys if j_pattern.fullmatch(s)]
         j_keys = ["j" + s[1:-2] + "l" for s in ks_keys]
-        for key in k_keys:
-            twiss_data[key] = twiss_tab[key][:-1]
-        for key in ks_keys:
-            twiss_data[key] = twiss_tab[key][:-1]
+        for i in range(len(k_keys)):
+            twiss_data[k_keys[i]] = twiss_tab[k_keys[i]][:-1]
+        for i in range(len(ks_keys)):
+            twiss_data[j_keys[i]] = twiss_tab[ks_keys[i]][:-1]
     except ValueError:
         raise ValueError("Line cannot be twissed, fix issue and try again!")
 
