@@ -11,7 +11,7 @@ from xtrack import Line  # type: ignore[import-untyped]
 
 def _i_pow(n: int) -> complex:
     """
-    Function to compute nth power the complex number i.
+    Function to compute nth power of the complex number i.
 
     Input:
         - n: integer number
@@ -28,7 +28,7 @@ def _dmus_at_element(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Function to calculate the phase advance differences between all line
-    elements and a given element at an integer location. If the difference
+    elements and a given element at an integer location. If the differences
     were negative, the tune is added.
 
     Input:
@@ -95,10 +95,10 @@ def _create_twiss_data(line: Line) -> dict[str, Union[float, np.ndarray]]:
         j_pattern = re.compile(r"k\d+sl")
         ks_keys = [s for s in twiss_keys if j_pattern.fullmatch(s)]
         j_keys = ["j" + s[1:-2] + "l" for s in ks_keys]
-        for i in range(len(k_keys)):
-            twiss_data[k_keys[i]] = twiss_tab[k_keys[i]][:-1]
-        for i in range(len(ks_keys)):
-            twiss_data[j_keys[i]] = twiss_tab[ks_keys[i]][:-1]
+        for key in k_keys:
+            twiss_data[key] = twiss_tab[key][:-1]
+        for key in ks_keys:
+            twiss_data[key] = twiss_tab[key][:-1]
     except ValueError:
         raise ValueError("Line cannot be twissed, fix issue and try again!")
 
@@ -133,10 +133,7 @@ def _calc_single_rdt_single_loc(
           at the desired location
     """
 
-    p = pqrt[0]
-    q = pqrt[1]
-    r = pqrt[2]
-    t = pqrt[3]
+    p, q, r, t = pqrt
 
     n = p + q + r + t
 
@@ -216,10 +213,14 @@ def calculate_rdts(
         raise ValueError("Names must be defined for all elements!")
 
     num_rdts = len(rdts)
-    if locations == "all":
+    if isinstance(locations, list):
+        num_locs = len(locations)
+    elif isinstance(locations, str) and locations == "all":
         num_locs = len(names)
     else:
-        num_locs = len(locations)
+        raise ValueError(
+            "Incorrect locations requested, must be 'all' or list of element names!"
+        )
 
     rdt_data = np.full([num_locs, num_rdts], np.nan, dtype=complex)
 
@@ -258,13 +259,9 @@ def calculate_rdts(
                     twiss_data, feeddown, (p, q, r, t), loc_idx
                 )
 
-    if locations == "all":
+    if isinstance(locations, str):
         rdt_df = pd.DataFrame(data=rdt_data, index=names, columns=rdts)
-    elif isinstance(locations, list):
-        rdt_df = pd.DataFrame(data=rdt_data, index=locations, columns=rdts)
     else:
-        raise ValueError(
-            "Incorrect locations requested, must be 'all' or list of element names!"
-        )
+        rdt_df = pd.DataFrame(data=rdt_data, index=locations, columns=rdts)
 
     return rdt_df
