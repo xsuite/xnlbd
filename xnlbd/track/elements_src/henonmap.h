@@ -1,5 +1,5 @@
-#ifndef XTRACK_HENONMAP_H
-#define XTRACK_HENONMAP_H
+#ifndef XNLBD_HENONMAP_H
+#define XNLBD_HENONMAP_H
 
 
 /*gpufun*/
@@ -200,4 +200,4 @@ void Henonmap_track_local_particle(HenonmapData el, LocalParticle* part0){
 
 }
 
-#endif /* XTRACK_HENONMAP_H */
+#endif /* XNLBD_HENONMAP_H */

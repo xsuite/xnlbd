@@ -332,6 +332,13 @@ class ModulatedHenonmap(BeamElement):
         Number of tunes available in the tune arrays, if a particle is tracked
         above that number, a mod operator is used to roll-over the array. If the
         particle has negative at_turn value, the array is rolled backwards.
+    n_par_multipoles: int
+        Number of different multipole strengths provided. It is evaluated 
+        automatically from the length of the multipole_coeffs array provided.
+        It is used then at runtime to apply the same loop of strenghts to the
+        according turns via modulo operator. If only a single multipole strength
+        is provided, this value is 1, and the same strength is applied to all 
+        turns.
     norm: int
         1 if input coordinates are already normalised, 0 if not.
 
@@ -352,6 +359,7 @@ class ModulatedHenonmap(BeamElement):
         "sin_omega_y": xo.Float64[:],
         "cos_omega_y": xo.Float64[:],
         "n_turns": xo.Int64,
+        "n_par_multipoles": xo.Int64,
         "twiss_params": xo.Float64[:],
         "domegax": xo.Float64,
         "domegay": xo.Float64,
@@ -405,6 +413,7 @@ class ModulatedHenonmap(BeamElement):
             kwargs.setdefault("sin_omega_y", np.sin(omega_y))
             kwargs.setdefault("cos_omega_y", np.cos(omega_y))
             kwargs.setdefault("n_turns", len(omega_x))
+            kwargs.setdefault("n_par_multipoles", len(multipole_coeffs))
             kwargs.setdefault("twiss_params", twiss_params)
             kwargs.setdefault("domegax", 2 * np.pi * dqx)
             kwargs.setdefault("domegay", 2 * np.pi * dqy)
@@ -417,8 +426,7 @@ class ModulatedHenonmap(BeamElement):
             fy_coeffs = []
             fy_x_exps = []
             fy_y_exps = []
-            for i in range(len(omega_x)):
-                curr_multipole_coeffs = multipole_coeffs[i]
+            for i, curr_multipole_coeffs in enumerate(multipole_coeffs):
                 for n in range(2, len(curr_multipole_coeffs) + 2):
                     for k in range(0, n + 1):
                         if (k % 4) == 0:
