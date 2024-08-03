@@ -1,9 +1,7 @@
 import pathlib
 
-import matplotlib
-import matplotlib.pyplot as plt
-import xpart as xp
-import xtrack as xt
+import matplotlib.pyplot as plt  # type: ignore[import-untyped]
+import xtrack as xt  # type: ignore[import-untyped]
 
 from xnlbd.visualise.orbits import get_orbit_points
 
@@ -16,7 +14,7 @@ def main():
     In the horizontal plane the 3rd order resonance is strongly excited such
     that stable islands form, while in the vertical plane the phase space
     remains linear. The RF is turned on, therefore the RF bucket is visible in
-    the logitudinal plane.
+    the longitudinal plane.
     """
 
     """
@@ -199,8 +197,8 @@ def main():
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 12), layout="tight")
     axes[0, 0].plot(
-        orbits_arc_on["H_orbit_points"]["x"],
-        orbits_arc_on["H_orbit_points"]["px"],
+        orbits_arc_on["H_orbit_points"]["x"] * 1e3,
+        orbits_arc_on["H_orbit_points"]["px"] * 1e6,
         color="black",
         marker=".",
         markersize=0.1,
@@ -211,8 +209,8 @@ def main():
     axes[0, 0].tick_params(axis="both", labelsize=fs - 2)
     axes[0, 0].set_title(r"$\delta=0$", fontsize=fs)
     axes[0, 1].plot(
-        orbits_arc_off["H_orbit_points"]["x"],
-        orbits_arc_off["H_orbit_points"]["px"],
+        orbits_arc_off["H_orbit_points"]["x"] * 1e3,
+        orbits_arc_off["H_orbit_points"]["px"] * 1e6,
         color="black",
         marker=".",
         markersize=0.1,
@@ -223,8 +221,8 @@ def main():
     axes[0, 1].tick_params(axis="both", labelsize=fs - 2)
     axes[0, 1].set_title(r"$\delta=-0.0015$", fontsize=fs)
     axes[1, 0].plot(
-        orbits_arc_on["V_orbit_points"]["y"],
-        orbits_arc_on["V_orbit_points"]["py"],
+        orbits_arc_on["V_orbit_points"]["y"] * 1e3,
+        orbits_arc_on["V_orbit_points"]["py"] * 1e6,
         color="black",
         marker=".",
         markersize=0.1,
@@ -234,8 +232,8 @@ def main():
     axes[1, 0].set_ylabel(r"$p_y$ [$\mu$rad]", fontsize=fs)
     axes[1, 0].tick_params(axis="both", labelsize=fs - 2)
     axes[1, 1].plot(
-        orbits_arc_off["V_orbit_points"]["y"],
-        orbits_arc_off["V_orbit_points"]["py"],
+        orbits_arc_off["V_orbit_points"]["y"] * 1e3,
+        orbits_arc_off["V_orbit_points"]["py"] * 1e6,
         color="black",
         marker=".",
         markersize=0.1,

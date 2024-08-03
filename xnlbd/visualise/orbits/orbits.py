@@ -1,12 +1,10 @@
 import copy
-from typing import Tuple, Union
 
 import numpy as np
 import scipy.constants as sc  # type: ignore[import-untyped]
 import xpart as xp  # type: ignore[import-untyped]
 import xtrack as xt  # type: ignore[import-untyped]
 from xtrack import Line  # type: ignore[import-untyped]
-from xtrack.particles.particles import Particles  # type: ignore[import-untyped]
 from xtrack.twiss import TwissTable  # type: ignore[import-untyped]
 
 
@@ -31,18 +29,20 @@ def get_normalised_coordinates_from_real(
 
     at_element_particles = np.asarray(particles_dict["at_element"], dtype=int)
 
-    part_id = np.asarray(particles_dict["particle_id"].copy(), dtype=int)
+    part_id = np.asarray(copy.deepcopy(particles_dict["particle_id"]), dtype=int)
     at_element = (
-        np.asarray(part_id.copy(), dtype=int) * 0 + xt.particles.LAST_INVALID_STATE
+        np.asarray(copy.deepcopy(part_id), dtype=int) * 0
+        + xt.particles.LAST_INVALID_STATE
     )
     x_norm = (
-        np.asarray(particles_dict["x"].copy()) * 0 + xt.particles.LAST_INVALID_STATE
+        np.asarray(copy.deepcopy(particles_dict["x"])) * 0
+        + xt.particles.LAST_INVALID_STATE
     )
-    px_norm = x_norm.copy()
-    y_norm = x_norm.copy()
-    py_norm = x_norm.copy()
-    zeta_norm = x_norm.copy()
-    pzeta_norm = x_norm.copy()
+    px_norm = copy.deepcopy(x_norm)
+    y_norm = copy.deepcopy(x_norm)
+    py_norm = copy.deepcopy(x_norm)
+    zeta_norm = copy.deepcopy(x_norm)
+    pzeta_norm = copy.deepcopy(x_norm)
 
     at_element_no_rep = list(
         set(at_element_particles[part_id > xt.particles.LAST_INVALID_STATE])
@@ -109,19 +109,20 @@ def get_real_coordinates_from_normalised(
 
     at_element_particles = np.asarray(particles_dict["at_element"], dtype=int)
 
-    part_id = np.asarray(particles_dict["particle_id"].copy(), dtype=int)
+    part_id = np.asarray(copy.deepcopy(particles_dict["particle_id"]), dtype=int)
     at_element = (
-        np.asarray(part_id.copy(), dtype=int) * 0 + xt.particles.LAST_INVALID_STATE
-    )
-    x = (
-        np.asarray(particles_dict["x_norm"].copy()) * 0
+        np.asarray(copy.deepcopy(part_id), dtype=int) * 0
         + xt.particles.LAST_INVALID_STATE
     )
-    px = x.copy()
-    y = x.copy()
-    py = x.copy()
-    zeta = x.copy()
-    pzeta = x.copy()
+    x = (
+        np.asarray(copy.deepcopy(particles_dict["x_norm"])) * 0
+        + xt.particles.LAST_INVALID_STATE
+    )
+    px = copy.deepcopy(x)
+    y = copy.deepcopy(x)
+    py = copy.deepcopy(x)
+    zeta = copy.deepcopy(x)
+    pzeta = copy.deepcopy(x)
 
     at_element_no_rep = list(
         set(at_element_particles[part_id > xt.particles.LAST_INVALID_STATE])
@@ -193,21 +194,18 @@ def _get_H_orbit_points(
     Output:
         - dictionary with the following structure:
           {
-           "H_orbit_points":
-           {
-            "x": np.ndarray((2 x num_pts, num_turns)),
-            "px": np.ndarray((2 x num_pts, num_turns)),
-           },
-           "H_orbit_points_norm":
-           {
-            "x_norm": np.ndarray((2 x num_pts, num_turns)),
-            "px_norm": np.ndarray((2 x num_pts, num_turns)),
-           }
+              "H_orbit_points":
+              {
+                  "x": np.ndarray((2 x num_pts, num_turns)),
+                  "px": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "H_orbit_points_norm":
+              {
+                  "x_norm": np.ndarray((2 x num_pts, num_turns)),
+                  "px_norm": np.ndarray((2 x num_pts, num_turns)),
+              }
           }
     """
-    # Get relativistic beta from twiss
-    beta0 = twiss.particle_on_co.beta0[0]
-
     # Find rough estimate for limit of stability
     num_pts_test = num_pts
 
@@ -391,21 +389,18 @@ def _get_V_orbit_points(
     Output:
         - dictionary with the following structure:
           {
-           "V_orbit_points":
-           {
-            "y": np.ndarray((2 x num_pts, num_turns)),
-            "py": np.ndarray((2 x num_pts, num_turns)),
-           },
-           "V_orbit_points_norm":
-           {
-            "y_norm": np.ndarray((2 x num_pts, num_turns)),
-            "py_norm": np.ndarray((2 x num_pts, num_turns)),
-           }
+              "V_orbit_points":
+              {
+                  "y": np.ndarray((2 x num_pts, num_turns)),
+                  "py": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "V_orbit_points_norm":
+              {
+                  "y_norm": np.ndarray((2 x num_pts, num_turns)),
+                  "py_norm": np.ndarray((2 x num_pts, num_turns)),
+              }
           }
     """
-
-    # Get relativistic beta from twiss
-    beta0 = twiss.particle_on_co.beta0[0]
 
     # Find rough estimate for limit of stability
     num_pts_test = num_pts
@@ -625,18 +620,18 @@ def _get_L_orbit_points(
     Output:
         - dictionary with the following structure:
           {
-           "L_orbit_points":
-           {
-            "zeta": np.ndarray((num_pts, num_turns)),
-            "ptau": np.ndarray((num_pts, num_turns)),
-            "pzeta": np.ndarray((num_pts, num_turns)),
-            "pdelta": np.ndarray((num_pts, num_turns)),
-           },
-           "L_orbit_points_norm":
-           {
-            "zeta_norm": np.ndarray((num_pts, num_turns)),
-            "pzeta_norm": np.ndarray((num_pts, num_turns)),
-           }
+              "L_orbit_points":
+              {
+                  "zeta": np.ndarray((num_pts, num_turns)),
+                  "ptau": np.ndarray((num_pts, num_turns)),
+                  "pzeta": np.ndarray((num_pts, num_turns)),
+                  "pdelta": np.ndarray((num_pts, num_turns)),
+              },
+              "L_orbit_points_norm":
+              {
+                  "zeta_norm": np.ndarray((num_pts, num_turns)),
+                  "pzeta_norm": np.ndarray((num_pts, num_turns)),
+              }
           }
     """
 
@@ -822,7 +817,7 @@ def get_orbit_points(
     """
 
     # Copy line
-    line_int = line.copy()
+    line_int = copy.deepcopy(line)
     line_int.build_tracker()
 
     # Twiss
@@ -889,40 +884,20 @@ def get_orbit_points(
     }
     co_coords_norm = get_normalised_coordinates_from_real(twiss, co_coords)
 
-    if planes == "H":
-        orbits = _get_H_orbit_points(
-            line_int, twiss, co_coords, co_coords_norm, num_pts, num_turns
-        )
-    elif planes == "V":
-        orbits = _get_V_orbit_points(
-            line_int, twiss, co_coords, co_coords_norm, num_pts, num_turns
-        )
-    elif planes == "L":
-        orbits = _get_L_orbit_points(line_int, twiss, co_coords, num_pts, num_turns)
-    elif planes == "HV":
+    orbits_H = {}
+    orbits_V = {}
+    orbits_L = {}
+    if "H" in planes:
         orbits_H = _get_H_orbit_points(
             line_int, twiss, co_coords, co_coords_norm, num_pts, num_turns
         )
+    if "V" in planes:
         orbits_V = _get_V_orbit_points(
             line_int, twiss, co_coords, co_coords_norm, num_pts, num_turns
         )
-
-        orbits = copy.deepcopy(orbits_H)
-        for key in orbits_V.keys():
-            orbits[key] = orbits_V[key]
-    else:
-        orbits_H = _get_H_orbit_points(
-            line_int, twiss, co_coords, co_coords_norm, num_pts, num_turns
-        )
-        orbits_V = _get_V_orbit_points(
-            line_int, twiss, co_coords, co_coords_norm, num_pts, num_turns
-        )
+    if "L" in planes:
         orbits_L = _get_L_orbit_points(line_int, twiss, co_coords, num_pts, num_turns)
 
-        orbits = copy.deepcopy(orbits_H)
-        for key in orbits_V.keys():
-            orbits[key] = orbits_V[key]
-        for key in orbits_L.keys():
-            orbits[key] = orbits_L[key]
+    orbits = orbits_H | orbits_V | orbits_L
 
     return orbits
