@@ -5,7 +5,7 @@ import xtrack as xt  # type: ignore[import-untyped]
 
 from xnlbd.visualise.orbits import get_orbit_points
 
-test_data_folder = pathlib.Path(__file__).parent.joinpath("example_data").absolute()
+example_data_folder = pathlib.Path(__file__).parent.joinpath("example_data").absolute()
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     """
 
     # Load xsuite line
-    line = xt.Line.from_json(test_data_folder.joinpath("sps_100GeV_lhc_q26.json"))
+    line = xt.Line.from_json(example_data_folder.joinpath("sps_100GeV_lhc_q26.json"))
 
     # Set tune and chromaticity
     line.vv["qh_setvalue"] = 26.334
