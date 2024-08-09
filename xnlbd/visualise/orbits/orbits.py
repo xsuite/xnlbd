@@ -754,6 +754,14 @@ def get_orbit_points(
     num_pts: int,
     num_turns: int = 2048,
     delta0: float = 0.0,
+    co_guess: dict[str, float] = {
+        "x": 0.0,
+        "px": 0.0,
+        "y": 0.0,
+        "py": 0.0,
+        "zeta": 0.0,
+        "ptau": 0.0,
+    },
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     Function to track particles and record their coordinates every turn to
@@ -775,42 +783,45 @@ def get_orbit_points(
         - delta0: float, the momentum offset of the reference particle,
           default `0`, will only be considered if the requested planes are
           transverse only
+        - co_guess: dictionary containing the closed orbit guess in case it is
+          different from 0, default `{'x': 0.0, 'px': 0.0, 'y': 0.0, 'py': 0.0,
+          'zeta': 0.0, 'ptau': 0.0}`
 
     Output:
         - dictionary with the following structure:
           {
-          "H_orbit_points":
-           {
-            "x": np.ndarray((2 x num_pts, num_turns)),
-            "px": np.ndarray((2 x num_pts, num_turns)),
-           },
-           "H_orbit_points_norm":
-           {
-            "x_norm": np.ndarray((2 x num_pts, num_turns)),
-            "px_norm": np.ndarray((2 x num_pts, num_turns)),
-           }
-           "V_orbit_points":
-           {
-            "y": np.ndarray((2 x num_pts, num_turns)),
-            "py": np.ndarray((2 x num_pts, num_turns)),
-           },
-           "V_orbit_points_norm":
-           {
-            "y_norm": np.ndarray((2 x num_pts, num_turns)),
-            "py_norm": np.ndarray((2 x num_pts, num_turns)),
-           }
-           "L_orbit_points":
-           {
-            "zeta": np.ndarray((2 x num_pts, num_turns)),
-            "ptau": np.ndarray((2 x num_pts, num_turns)),
-            "pzeta": np.ndarray((2 x num_pts, num_turns)),
-            "pdelta": np.ndarray((2 x num_pts, num_turns)),
-           },
-           "L_orbit_points_norm":
-           {
-            "zeta_norm": np.ndarray((2 x num_pts, num_turns)),
-            "pzeta_norm": np.ndarray((2 x num_pts, num_turns)),
-           }
+              "H_orbit_points":
+              {
+                  "x": np.ndarray((2 x num_pts, num_turns)),
+                  "px": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "H_orbit_points_norm":
+              {
+                  "x_norm": np.ndarray((2 x num_pts, num_turns)),
+                  "px_norm": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "V_orbit_points":
+              {
+                  "y": np.ndarray((2 x num_pts, num_turns)),
+                  "py": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "V_orbit_points_norm":
+              {
+                  "y_norm": np.ndarray((2 x num_pts, num_turns)),
+                  "py_norm": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "L_orbit_points":
+              {
+                  "zeta": np.ndarray((2 x num_pts, num_turns)),
+                  "ptau": np.ndarray((2 x num_pts, num_turns)),
+                  "pzeta": np.ndarray((2 x num_pts, num_turns)),
+                  "delta": np.ndarray((2 x num_pts, num_turns)),
+              },
+              "L_orbit_points_norm":
+              {
+                  "zeta_norm": np.ndarray((2 x num_pts, num_turns)),
+                  "pzeta_norm": np.ndarray((2 x num_pts, num_turns)),
+              },
           }
           in case 'HVL' planes are requested, otherwise the data for the
           not requested plane(s) is omitted
@@ -826,9 +837,13 @@ def get_orbit_points(
             "Incorrect plane requested! Must be 'H', 'V', 'L', 'HV' or 'HVL'."
         )
     elif planes in ["H", "V", "HV"]:
-        twiss_bc = line_int.twiss(continue_on_closed_orbit_error=False, delta0=delta0)
+        twiss_bc = line_int.twiss(
+            continue_on_closed_orbit_error=False, delta0=delta0, co_guess=co_guess
+        )
     else:
-        twiss_bc = line_int.twiss(continue_on_closed_orbit_error=False)
+        twiss_bc = line_int.twiss(
+            continue_on_closed_orbit_error=False, co_guess=co_guess
+        )
 
     # Cycle line to requested element
     line_int.cycle(name_first_element=element, inplace=True)
