@@ -11,7 +11,7 @@ import xpart as xp
 import xtrack as xt
 import xtrack.twiss as xtw
 
-from .normed_particles import NormedParticles
+from ...tools.normed_particles import NormedParticles
 
 
 class GhostParticleManager(xo.HybridClass):

@@ -7,7 +7,7 @@ from xobjects.test_helpers import (
     for_all_test_contexts,
 )
 
-from xnlbd.analyse.chaos import NormedParticles
+from xnlbd.tools import NormedParticles
 
 
 @for_all_test_contexts

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def birkhoff_weights(n):
+def birkhoff_weights(n: int):
     """Get the Birkhoff weights for a given number of samples.
 
     Parameters

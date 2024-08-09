@@ -4,6 +4,7 @@ import numpy as np
 import xobjects as xo  # type: ignore[import-not-found]
 from scipy.special import factorial  # type: ignore[import-untyped]
 from xtrack.base_element import BeamElement  # type: ignore[import-not-found]
+from xtrack.random import RandomUniform, RandomExponential, RandomNormal
 
 _pkg_root = Path(__file__).parent.absolute()
 
@@ -478,3 +479,61 @@ class ModulatedHenonmap(BeamElement):
         super().__init__(**kwargs)
 
     has_backtrack = True
+
+
+class RandomNormalKick(BeamElement):
+
+    _xofields = {
+        "x_module": xo.Float64,
+        "x_flag": xo.Int64,
+        "px_module": xo.Float64,
+        "px_flag": xo.Int64,
+        "y_module": xo.Float64,
+        "y_flag": xo.Int64,
+        "py_module": xo.Float64,
+        "py_flag": xo.Int64,
+        "zeta_module": xo.Float64,
+        "zeta_flag": xo.Int64,
+        "ptau_module": xo.Float64,
+        "ptau_flag": xo.Int64,
+    }
+
+    _extra_c_sources = [_pkg_root.joinpath("elements_src/randomnormalkick.h")]
+    _depends_on = [RandomNormal]
+
+    has_backtrack = False
+
+    def __init__(
+        self,
+        x_module=0.0,
+        px_module=0.0,
+        y_module=0.0,
+        py_module=0.0,
+        zeta_module=0.0,
+        ptau_module=0.0,  
+        **kwargs,
+    ):
+        if '_xobject' in kwargs and kwargs['_xobject'] is not None:
+            self.xoinitialize(**kwargs)
+            return
+        
+        modules = {
+            "x_flag": x_module,
+            "px_flag": px_module,
+            "y_flag": y_module,
+            "py_flag": py_module,
+            "zeta_flag": zeta_module,
+            "ptau_flag": ptau_module,
+        }
+
+        for flag, module in modules.items():
+            kwargs.setdefault(flag, 1 if module != 0.0 else 0)
+
+        kwargs.setdefault("x_module", x_module)
+        kwargs.setdefault("px_module", px_module)
+        kwargs.setdefault("y_module", y_module)
+        kwargs.setdefault("py_module", py_module)
+        kwargs.setdefault("zeta_module", zeta_module)
+        kwargs.setdefault("ptau_module", ptau_module)
+
+        super().__init__(**kwargs)

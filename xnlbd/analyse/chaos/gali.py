@@ -4,7 +4,7 @@ import numpy as np
 from numba import njit
 from tqdm.auto import tqdm
 
-from .generic_writer import GenericWriter, H5pyWriter, LocalWriter
+from ...tools.generic_writer import GenericWriter, H5pyWriter, LocalWriter
 
 
 @njit

@@ -1,5 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import h5py
 import numpy as np
@@ -288,12 +289,13 @@ class LocalWriter(GenericWriter):
         return h5pywriter
 
     def __getitem__(self, key):
-        return self.get_data(key)
+        # in this case, let us return the data directly from the dictionary
+        return self.data[key]
 
     def __setitem__(self, key, value):
         self.write_data(key, value, overwrite=True)
 
-    def keys(self, key: str = None):
+    def keys(self, key: Optional[str] = None):
         """Get the keys of the datasets in the local dictionary.
 
         Parameters

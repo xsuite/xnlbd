@@ -1,3 +1,5 @@
+from typing import Optional, Tuple, Union, List
+
 import numpy as np
 import xobjects as xo
 import xpart as xp
@@ -6,21 +8,23 @@ import xtrack.twiss as xtw
 
 from tqdm.auto import tqdm
 
-from .generic_writer import GenericWriter
-from .normed_particles import NormedParticles
+from ...tools.generic_writer import GenericWriter, LocalWriter
+from ...tools.normed_particles import NormedParticles
 
 
 def reverse_error_method(
     part: xp.Particles,
-    turns_to_sample,
+    turns_to_sample: Union[List[int], np.ndarray],
     line: xt.Line,
-    twiss: xtw.TwissTable,
-    nemitt,
-    out: GenericWriter,
-    save_all=False,
-    _context=xo.ContextCpu(),
-    force_backtrack=False,
-    overwrite=True,
+    out: Optional[GenericWriter] = None,
+    save_all: bool = False,
+    twiss: Optional[xtw.TwissTable] = None,
+    nemitt: Optional[Tuple[float, float]] = None,
+    _context: Union[
+        xo.ContextCpu, xo.ContextCupy, xo.ContextPyopencl
+    ] = xo.ContextCpu(),
+    force_backtrack: bool = False,
+    overwrite: bool = True,
 ):
     """Evaluate the reverse error method for the given values of turns.
 
@@ -32,14 +36,17 @@ def reverse_error_method(
         List of turns to be used for the study.
     line : xt.Line
         Line to be used for the study.
-    twiss : xtw.TwissTable
-        Twiss table of the line to be used for the normalization.
-    nemitt : Tuple[float, float]
-        Normalized emittance in the horizontal and vertical planes.
-    out : GenericWriter
-        Writer object to store the results.
+    out : GenericWriter, optional
+        Writer object to store the results. By default None. If None, the
+        results will be saved in a LocalWriter (i.e., a dictionary).
     save_all : bool, optional
         If True, the full particle distribution is saved at the time samples, by default False
+    twiss : xtw.TwissTable
+        Twiss table of the line to be used for the normalization if provided,
+        by default None
+    nemitt : Tuple[float, float]
+        Normalized emittance in the horizontal and vertical planes, to be
+        provided if twiss is provided, by default None
     _context : xo.Context, optional
         xobjects context to be used, by default xo.ContextCPU()
     force_backtrack : bool, optional
@@ -47,16 +54,26 @@ def reverse_error_method(
         not fully support backtracking, by default False
     overwrite : bool, optional
         If True, the output file is overwritten, by default True
+
+    Returns
+    -------
+    out : GenericWriter
+        Writer object containing the results of the study.
     """
+    if out is None:
+        out = LocalWriter("out")
+
     turns_to_sample = np.sort(np.unique(turns_to_sample))
     f_part = part.copy()
-    norm_f_part = NormedParticles(
-        twiss=twiss,
-        nemitt_x=nemitt[0],
-        nemitt_y=nemitt[1],
-        _context=_context,
-        part=f_part,
-    )
+
+    if twiss is not None:
+        norm_f_part = NormedParticles(
+            twiss=twiss,
+            nemitt_x=nemitt[0],
+            nemitt_y=nemitt[1],
+            _context=_context,
+            part=f_part,
+        )
 
     particle_idx = _context.nparray_from_context_array(f_part.particle_id)
     argsort_reference = np.argsort(particle_idx)
@@ -72,13 +89,14 @@ def reverse_error_method(
     ]
     attributes_phys = ["x", "px", "y", "py", "zeta", "ptau"]
 
-    for attr in attributes_norm:
-        out.write_data(
-            f"initial/{attr}",
-            _context.nparray_from_context_array(getattr(norm_f_part, attr))[
-                argsort_reference
-            ],
-        )
+    if twiss is not None:
+        for attr in attributes_norm:
+            out.write_data(
+                f"initial/{attr}",
+                _context.nparray_from_context_array(getattr(norm_f_part, attr))[
+                    argsort_reference
+                ],
+            )
 
     for attr in attributes_phys:
         out.write_data(
@@ -107,63 +125,47 @@ def reverse_error_method(
         idx_r = _context.nparray_from_context_array(r_part.particle_id)
         argsort_backward = np.argsort(idx_r)
 
-        norm_r_part = NormedParticles(
-            twiss=twiss,
-            nemitt_x=nemitt[0],
-            nemitt_y=nemitt[1],
-            _context=_context,
-            part=r_part,
-        )
+        if twiss is not None:
+            norm_r_part = NormedParticles(
+                twiss=twiss,
+                nemitt_x=nemitt[0],
+                nemitt_y=nemitt[1],
+                _context=_context,
+                part=r_part,
+            )
 
-        if save_all:
-
-            for attr in attributes_norm:
-                out.write_data(
-                    f"forward-backward/{t}/{attr}",
-                    _context.nparray_from_context_array(getattr(norm_f_part, attr))[
-                        argsort_backward
-                    ],
-                    overwrite=overwrite,
+            rem_norm = np.sqrt(
+                (
+                    norm_f_part.x_norm[argsort_reference]
+                    - norm_r_part.x_norm[argsort_backward]
                 )
-
-            for attr in attributes_phys:
-                out.write_data(
-                    f"forward-backward/{t}/{attr}",
-                    _context.nparray_from_context_array(getattr(f_part, attr))[
-                        argsort_backward
-                    ],
-                    overwrite=overwrite,
+                ** 2
+                + (
+                    norm_f_part.px_norm[argsort_reference]
+                    - norm_r_part.px_norm[argsort_backward]
                 )
-
-        rem_norm = np.sqrt(
-            (norm_f_part.x_norm[argsort_forward] - norm_r_part.x_norm[argsort_backward])
-            ** 2
-            + (
-                norm_f_part.px_norm[argsort_reference]
-                - norm_r_part.px_norm[argsort_backward]
+                ** 2
+                + (
+                    norm_f_part.y_norm[argsort_reference]
+                    - norm_r_part.y_norm[argsort_backward]
+                )
+                ** 2
+                + (
+                    norm_f_part.py_norm[argsort_reference]
+                    - norm_r_part.py_norm[argsort_backward]
+                )
+                ** 2
+                + (
+                    norm_f_part.zeta_norm[argsort_reference]
+                    - norm_r_part.zeta_norm[argsort_backward]
+                )
+                ** 2
+                + (
+                    norm_f_part.pzeta_norm[argsort_reference]
+                    - norm_r_part.pzeta_norm[argsort_backward]
+                )
+                ** 2
             )
-            ** 2
-            + (
-                norm_f_part.y_norm[argsort_reference]
-                - norm_r_part.y_norm[argsort_backward]
-            )
-            ** 2
-            + (
-                norm_f_part.py_norm[argsort_reference]
-                - norm_r_part.py_norm[argsort_backward]
-            )
-            ** 2
-            + (
-                norm_f_part.zeta_norm[argsort_reference]
-                - norm_r_part.zeta_norm[argsort_backward]
-            )
-            ** 2
-            + (
-                norm_f_part.pzeta_norm[argsort_reference]
-                - norm_r_part.pzeta_norm[argsort_backward]
-            )
-            ** 2
-        )
 
         rem = np.sqrt(
             (part.x[argsort_reference] - r_part.x[argsort_backward]) ** 2
@@ -174,11 +176,41 @@ def reverse_error_method(
             + (part.ptau[argsort_reference] - r_part.ptau[argsort_backward]) ** 2
         )
 
-        out.write_data(
-            f"rem_norm/{t}",
-            _context.nparray_from_context_array(rem_norm),
-            overwrite=overwrite,
-        )
+        lost_mask = r_part.state[argsort_backward] <= 0
+        if twiss is not None:
+            rem_norm[lost_mask] = np.nan
+        rem[lost_mask] = np.nan
+
+        if save_all:
+
+            if twiss is not None:
+                for attr in attributes_norm:
+                    data = _context.nparray_from_context_array(
+                        getattr(norm_r_part, attr)
+                    )[argsort_backward]
+                    data[lost_mask] = np.nan
+                    out.write_data(
+                        f"forward-backward/{t}/{attr}",
+                        data,
+                        overwrite=overwrite,
+                    )
+
+            for attr in attributes_phys:
+                data = _context.nparray_from_context_array(getattr(r_part, attr))[
+                    argsort_backward
+                ]
+                data[lost_mask] = np.nan
+                out.write_data(
+                    f"forward-backward/{t}/{attr}",
+                    data,
+                    overwrite=overwrite,
+                )
+        if twiss is not None:
+            out.write_data(
+                f"rem_norm/{t}",
+                _context.nparray_from_context_array(rem_norm),
+                overwrite=overwrite,
+            )
         out.write_data(
             f"rem/{t}", _context.nparray_from_context_array(rem), overwrite=overwrite
         )
@@ -196,3 +228,5 @@ def reverse_error_method(
         _context.nparray_from_context_array(f_part.state)[argsort_forward],
         overwrite=overwrite,
     )
+
+    return out

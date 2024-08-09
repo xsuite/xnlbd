@@ -1,1 +1,1 @@
-from .elements import Henonmap, ModulatedHenonmap
+from .elements import Henonmap, ModulatedHenonmap, RandomNormalKick

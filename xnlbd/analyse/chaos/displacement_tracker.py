@@ -1,23 +1,24 @@
+from typing import Optional, Tuple, Union, List
 import warnings
 
 import numpy as np
 import xtrack as xt
 from tqdm.auto import tqdm
 
-from .generic_writer import GenericWriter
+from ...tools.generic_writer import GenericWriter, LocalWriter
 from .ghost_particle_manager import GhostParticleManager
-from .tools import birkhoff_weights
+from ...tools.series import birkhoff_weights
 
 
 def track_displacement(
     gpm: GhostParticleManager,
     line: xt.Line,
-    turns_to_sample,
-    out: GenericWriter,
-    renorm_frequency=100,
-    renorm_module=1e-6,
-    tqdm_flag=True,
-    overwrite=True,
+    turns_to_sample: Union[List[int], np.ndarray],
+    out: Optional[GenericWriter] = None,
+    renorm_frequency: int = 100,
+    renorm_module: float = 1e-6,
+    tqdm_flag: bool = True,
+    overwrite: bool = True,
 ):
     """Track FLI/n and displacement direction of a given set of ghost particles.
 
@@ -27,8 +28,9 @@ def track_displacement(
         The line to track
     turns_to_sample : list
         List of the turns to sample the displacement
-    out : GenericWriter
-        The writer to write the data
+    out : GenericWriter, optional
+        The writer to write the data. If None, the results will be saved in a
+        LocalWriter.
     renorm_frequency : int, optional
         The frequency of distance renormalizations, by default 100
     renorm_module : float, optional
@@ -37,8 +39,14 @@ def track_displacement(
         If True, show the progress bar, by default True
     overwrite : bool, optional
         If True, overwrite the data in the writer, by default True
+
+    Returns
+    -------
+    out : GenericWriter
+        The writer containing the results of the study.
     """
-    # gpm.save_metadata(out)
+    if out is None:
+        out = LocalWriter("out")
 
     turns_to_sample = np.sort(np.unique(np.asarray(turns_to_sample, dtype=int)))
     max_turn = np.max(turns_to_sample)
@@ -152,16 +160,18 @@ def track_displacement(
         overwrite=overwrite,
     )
 
+    return out
+
 
 def track_displacement_birkhoff(
     gpm: GhostParticleManager,
     line: xt.Line,
-    turns_to_sample,
-    out: GenericWriter,
-    renorm_frequency=100,
-    renorm_module=None,
-    tqdm_flag=True,
-    overwrite=True,
+    turns_to_sample: Union[List[int], np.ndarray],
+    out: Optional[GenericWriter] = None,
+    renorm_frequency: int = 100,
+    renorm_module: float = 1e-6,
+    tqdm_flag: bool = True,
+    overwrite: bool = True,
 ):
     """Track the displacement and direction of the ghost particles while using
     the birkhoff weights for the displacement.
@@ -172,18 +182,26 @@ def track_displacement_birkhoff(
         The line to track
     turns_to_sample : list
         List of the turns to sample the displacement
-    out : GenericWriter
-        The writer to write the data
+    out : GenericWriter, optional
+        The writer to write the data. If None, the results will be saved in a
+        LocalWriter.
     renorm_frequency : int, optional
         The frequency of realignment, by default 100
     renorm_module : float, optional
-        The module to use for realignment, if None, the default module
-        set in the GhostParticleManager will be used, by default None
+        The module to use for realignment, by default 1e-6
     tqdm_flag : bool, optional
         If True, show the progress bar, by default True
     overwrite : bool, optional
         If True, overwrite the data in the writer, by default True
+
+    Returns
+    -------
+    out : GenericWriter
+        The writer containing the results of the study.
     """
+    if out is None:
+        out = LocalWriter("out")
+
     if np.any(np.asarray(turns_to_sample, dtype=int) % renorm_frequency != 0):
         warnings.warn(
             "Some of the sampling turns are not multiple of the realign frequency.\n"
@@ -318,3 +336,5 @@ def track_displacement_birkhoff(
         ],
         overwrite=overwrite,
     )
+
+    return out

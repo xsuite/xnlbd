@@ -1,5 +1,6 @@
 import numpy as np
 from pathlib import Path
+from typing import Optional
 
 import xobjects as xo
 import xpart as xp
@@ -12,6 +13,7 @@ class NormedParticles(xo.HybridClass):
     of transforming to and from physical coordinates without the need of breaking
     GPU parallelism.
     """
+
     _cname = "NormedParticlesData"
 
     size_vars = (
@@ -80,10 +82,10 @@ class NormedParticles(xo.HybridClass):
         twiss: xtw.TwissTable,
         nemitt_x: float,
         nemitt_y: float,
-        nemitt_z=None,
-        idx_pos=0,
-        part=None,
-        _capacity=None,
+        nemitt_z: Optional[float] = None,
+        idx_pos: int = 0,
+        part: Optional[xt.Particles] = None,
+        _capacity: Optional[int] = None,
         **kwargs,
     ):
         """Initialize the NormedParticles object.
@@ -133,8 +135,8 @@ class NormedParticles(xo.HybridClass):
             **{field: _capacity for _, field in self.per_particle_vars},
             **{
                 "twiss_data": 9,
-                "w": 6*6,
-                "w_inv": 6*6,
+                "w": 6 * 6,
+                "w_inv": 6 * 6,
             },
         )
 
