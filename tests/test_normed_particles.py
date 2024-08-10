@@ -1,11 +1,9 @@
 import pathlib
 
 import numpy as np
-import xpart as xp
-import xtrack as xt
-from xobjects.test_helpers import (
-    for_all_test_contexts,
-)
+import xpart as xp  # type: ignore[import-untyped]
+import xtrack as xt  # type: ignore[import-untyped]
+from xobjects.test_helpers import for_all_test_contexts  # type: ignore[import-untyped]
 
 from xnlbd.tools import NormedParticles
 
@@ -14,7 +12,7 @@ from xnlbd.tools import NormedParticles
 def test_normed_particles(test_context):
     # First load the example collider
     collider = xt.Multiline.from_json(
-        pathlib.Path(__file__).parent.joinpath("example_hl_lhc_collider/collider.json")
+        pathlib.Path(__file__).parent.joinpath("test_data/example_hl_lhc_collider.json")
     )
     line = collider["lhcb1"]
     line.build_tracker(_context=test_context)
