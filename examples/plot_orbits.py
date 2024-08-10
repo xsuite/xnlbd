@@ -50,7 +50,15 @@ def main():
     Look at phase space in all 3 planes at the horizontal tune kicker.
     At this location the closed orbit is 0 and dispersion is small.
     """
-    orbits_mkqh = get_orbit_points(line, element="mkqh.11653", planes="HVL", num_pts=30)
+    orbits_mkqh = get_orbit_points(
+        line,
+        element="mkqh.11653",
+        planes="HVL",
+        nemitt_x=1e-6,
+        nemitt_y=1e-6,
+        nemitt_z=1,
+        num_pts=60,
+    )
 
     fs = 16
     fig = plt.figure(figsize=(8, 12), layout="constrained")
@@ -70,8 +78,8 @@ def main():
     ax_top[0].set_ylabel(r"$p_x$ [$\mu$rad]", fontsize=fs)
     ax_top[0].tick_params(axis="both", labelsize=fs - 2)
     ax_top[1].plot(
-        orbits_mkqh["H_orbit_points_norm"]["x_norm"] * 1e3,
-        orbits_mkqh["H_orbit_points_norm"]["px_norm"] * 1e3,
+        orbits_mkqh["H_orbit_points_norm"]["x_norm"],
+        orbits_mkqh["H_orbit_points_norm"]["px_norm"],
         color="black",
         marker=".",
         markersize=0.1,
@@ -92,8 +100,8 @@ def main():
     ax_mid[0].set_ylabel(r"$p_y$ [$\mu$rad]", fontsize=fs)
     ax_mid[0].tick_params(axis="both", labelsize=fs - 2)
     ax_mid[1].plot(
-        orbits_mkqh["V_orbit_points_norm"]["y_norm"] * 1e3,
-        orbits_mkqh["V_orbit_points_norm"]["py_norm"] * 1e3,
+        orbits_mkqh["V_orbit_points_norm"]["y_norm"],
+        orbits_mkqh["V_orbit_points_norm"]["py_norm"],
         color="black",
         marker=".",
         markersize=0.1,
@@ -119,7 +127,15 @@ def main():
     Look at phase space in all 3 planes in the extraction region, where 
     we set up a large closed orbit bump.
     """
-    orbits_teca = get_orbit_points(line, element="teca.41777", planes="HVL", num_pts=30)
+    orbits_teca = get_orbit_points(
+        line,
+        element="teca.41777",
+        planes="HVL",
+        nemitt_x=1e-6,
+        nemitt_y=1e-6,
+        nemitt_z=1,
+        num_pts=60,
+    )
 
     fig = plt.figure(figsize=(8, 12), layout="constrained")
     subfigs = fig.subfigures(3, 1, hspace=0.1)
@@ -138,8 +154,8 @@ def main():
     ax_top[0].set_ylabel(r"$p_x$ [$\mu$rad]", fontsize=fs)
     ax_top[0].tick_params(axis="both", labelsize=fs - 2)
     ax_top[1].plot(
-        orbits_teca["H_orbit_points_norm"]["x_norm"] * 1e3,
-        orbits_teca["H_orbit_points_norm"]["px_norm"] * 1e3,
+        orbits_teca["H_orbit_points_norm"]["x_norm"],
+        orbits_teca["H_orbit_points_norm"]["px_norm"],
         color="black",
         marker=".",
         markersize=0.1,
@@ -160,8 +176,8 @@ def main():
     ax_mid[0].set_ylabel(r"$p_y$ [$\mu$rad]", fontsize=fs)
     ax_mid[0].tick_params(axis="both", labelsize=fs - 2)
     ax_mid[1].plot(
-        orbits_teca["V_orbit_points_norm"]["y_norm"] * 1e3,
-        orbits_teca["V_orbit_points_norm"]["py_norm"] * 1e3,
+        orbits_teca["V_orbit_points_norm"]["y_norm"],
+        orbits_teca["V_orbit_points_norm"]["py_norm"],
         color="black",
         marker=".",
         markersize=0.1,
@@ -189,10 +205,12 @@ def main():
     """
     line.vv["v200"] = 0.0
 
-    orbits_arc_on = get_orbit_points(line, element="bph.13008", planes="HV", num_pts=30)
+    orbits_arc_on = get_orbit_points(
+        line, element="bph.13008", planes="HV", nemitt_x=1e-6, nemitt_y=1e-6, num_pts=60
+    )
 
     orbits_arc_off = get_orbit_points(
-        line, element="bph.13008", planes="HV", num_pts=30, delta0=-0.0015
+        line, element="bph.13008", planes="HV", num_pts=60, delta0=-0.0015
     )
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 12), layout="tight")
