@@ -1,6 +1,6 @@
 import numpy as np
 
-# Amplitude of different 50 Hz harmonics measured in the SPS tune modulation 
+# Amplitude of different 50 Hz harmonics measured in the SPS tune modulation
 # as described in
 # REF: https://journals.aps.org/pre/abstract/10.1103/PhysRevE.57.3432
 
@@ -31,7 +31,7 @@ def make_sps_modulation(base_tune, epsilon, turns=np.arange(86812)):
     base_tune : float
         The base tune for the modulation.
     epsilon : float
-        The modulation amplitude. Usually between 0 (no modulation) and 
+        The modulation amplitude. Usually between 0 (no modulation) and
         64.0 (strong modulation).
     turns : np.ndarray, optional
         The given turns at which to calculate the modulation. Default is
