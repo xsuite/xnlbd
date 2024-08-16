@@ -1,4 +1,5 @@
 import itertools
+from typing import Tuple, List, Union, Optional
 
 import numpy as np
 from numba import njit
@@ -8,7 +9,7 @@ from ...tools.generic_writer import GenericWriter, H5pyWriter, LocalWriter
 
 
 @njit
-def svd_values_product(gali_matrix):
+def _svd_values_product(gali_matrix):
     if np.any(np.isnan(gali_matrix)):
         return np.nan
     else:
@@ -17,17 +18,17 @@ def svd_values_product(gali_matrix):
 
 
 @njit
-def gali_eval(gali_matrix):
+def _gali_eval(gali_matrix):
     gali_matrix = np.transpose(gali_matrix, (2, 0, 1))
     gali = []
     for m in gali_matrix:
-        gali.append(svd_values_product(m))
+        gali.append(_svd_values_product(m))
     gali = np.asarray(gali)
     return gali
 
 
-COORD_LIST = ("x", "px", "y", "py", "zeta", "ptau")
-NORM_COORD_LIST = ("x_norm", "px_norm", "y_norm", "py_norm", "zeta_norm", "pzeta_norm")
+COORD_LIST = ["x", "px", "y", "py", "zeta", "ptau"]
+NORM_COORD_LIST = ["x_norm", "px_norm", "y_norm", "py_norm", "zeta_norm", "pzeta_norm"]
 
 
 def _make_gali_combos(coord_list):
@@ -48,13 +49,13 @@ def _make_gali_combos(coord_list):
 def gali_extractor(
     input_writer: GenericWriter,
     output_writer: GenericWriter,
-    times,
-    coord_list=NORM_COORD_LIST,
-    which_gali="all",
-    custom_combos=None,
-    preload_data=False,
-    coord_list_nested=None,
-    overwrite=False,
+    times: Union[List[int], np.ndarray],
+    coord_list: List[str]=NORM_COORD_LIST,
+    which_gali: str="all",
+    custom_combos: Optional[List[Tuple[str]]]=None,
+    preload_data: bool=False,
+    coord_list_nested: Optional[List[str]]=None,
+    overwrite: bool=False,
 ):
     """Calculate the Generalized Alignment Index (GALI) for a set of
     coordinates managed by the GhostParticleManager class and tracked with
@@ -120,6 +121,6 @@ def gali_extractor(
                     for a in combo
                 ]
             )
-            disp = gali_eval(gali_matrix)
+            disp = _gali_eval(gali_matrix)
 
             output_writer.write_data(dataset_name, data=disp, overwrite=overwrite)
