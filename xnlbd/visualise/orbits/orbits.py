@@ -61,7 +61,9 @@ def _get_H_orbit_points(
           }
     """
     # Find rough estimate for limit of stability
-    x_test = np.linspace(part_on_co.x[0], part_on_co.x[0] + 0.5, num_pts)
+    x_test = np.linspace(
+        part_on_co.x[0], part_on_co.x[0] + line.config.XTRACK_GLOBAL_XY_LIMIT, num_pts
+    )
     part.x = x_test
     part_copy = copy.deepcopy(part)
     line.track(
@@ -69,7 +71,10 @@ def _get_H_orbit_points(
         num_turns=num_turns,
     )
     part.sort(interleave_lost_particles=True)
-    max_x_idx = np.where(part.state < 1)[0][0]
+    try:
+        max_x_idx = np.where(part.state < 1)[0][0]
+    except IndexError:
+        max_x_idx = len(x_test) - 1
     part_norm.phys_to_norm(part_copy)
     max_amp_norm = np.sqrt(
         (part_norm.x_norm[max_x_idx] - part_norm.x_norm[0]) ** 2
@@ -237,7 +242,9 @@ def _get_V_orbit_points(
           }
     """
     # Find rough estimate for limit of stability
-    y_test = np.linspace(part_on_co.y[0], part_on_co.y[0] + 0.5, num_pts)
+    y_test = np.linspace(
+        part_on_co.y[0], part_on_co.y[0] + line.config.XTRACK_GLOBAL_XY_LIMIT, num_pts
+    )
     part.y = y_test
     part_copy = copy.deepcopy(part)
     line.track(
@@ -245,7 +252,10 @@ def _get_V_orbit_points(
         num_turns=num_turns,
     )
     part.sort(interleave_lost_particles=True)
-    max_y_idx = np.where(part.state < 1)[0][0]
+    try:
+        max_y_idx = np.where(part.state < 1)[0][0]
+    except IndexError:
+        max_y_idx = len(y_test) - 1
     part_norm.phys_to_norm(part_copy)
     max_amp_norm = np.sqrt(
         (part_norm.y_norm[max_y_idx] - part_norm.y_norm[0]) ** 2
