@@ -5,7 +5,6 @@ from typing import Tuple, Union
 
 import numpy as np
 import xobjects as xo  # type: ignore[import-untyped]
-import xpart as xp  # type: ignore[import-untyped]
 import xtrack as xt  # type: ignore[import-untyped]
 from xtrack import Line  # type: ignore[import-untyped]
 from xtrack.particles.particles import Particles  # type: ignore[import-untyped]
@@ -21,14 +20,7 @@ class FPFinder:
         order: int,
         planes: str,
         tol: float,
-        co_guess: dict[str, float] = {
-            "x": 0.0,
-            "px": 0.0,
-            "y": 0.0,
-            "py": 0.0,
-            "zeta": 0.0,
-            "ptau": 0.0,
-        },
+        co_guess: Union[dict[str, float], None] = None,
         verbose: int = 0,
     ):
         """
@@ -76,6 +68,15 @@ class FPFinder:
         self.line: Line = copy.deepcopy(line)
         self.line.discard_tracker()
         self.line.build_tracker(_context=xo.ContextCpu())
+        if co_guess == None:
+            co_guess = {
+                "x": 0.0,
+                "px": 0.0,
+                "y": 0.0,
+                "py": 0.0,
+                "zeta": 0.0,
+                "ptau": 0.0,
+            }
         self.twiss: TwissTable = line.twiss(
             continue_on_closed_orbit_error=False, co_guess=co_guess
         )
@@ -83,7 +84,7 @@ class FPFinder:
         self.tol: float = tol
         self.verbose: int = verbose
         self.M: np.ndarray = self._M_n()
-        self.edges: list[Tuple] = self._construct_edges()
+        self.edges: list[Tuple[int, int]] = self._construct_edges()
 
         self.max_allowed_grid_points: int = 100000
 
@@ -626,7 +627,7 @@ class FPFinder:
 
         return neighbour_idx
 
-    def _construct_edges(self) -> list[Tuple]:
+    def _construct_edges(self) -> list[Tuple[int, int]]:
         """
         Function that computes all vertex pairs of an
         n-polygon who represent a valid edge.
@@ -702,8 +703,7 @@ class FPFinder:
               scalars
 
         Output:
-            - an integer (1 or -1) if the input is a scalar, or
-              an array of integers (1 or -1)
+            - array of integers (1 or -1), could be of length one
         """
 
         return np.where(psi >= 0, int(1), int(-1))
@@ -912,7 +912,9 @@ class FPFinder:
 
         return init_points
 
-    def _construct_proper_n_poly(self, limits: list[list], num_pts: int) -> np.ndarray:
+    def _construct_proper_n_poly(
+        self, limits: list[list[float]], num_pts: int
+    ) -> np.ndarray:
         """
         Function that returns the coordinates of an n-polygon that
         contains the fixed point and is proper.
@@ -967,6 +969,11 @@ and try again!"
                 intersect, trial * rad
             )
             trial += 1
+            if trial > 100:
+                raise RuntimeError(
+                    "Unexpected failure to construct proper \
+n-polygon."
+                )
 
         return init_n_poly
 
@@ -997,8 +1004,7 @@ and try again!"
             raise ValueError("Particle objects are not properly initialised!")
         if self.gbs_part._num_active_particles != 1:
             raise RuntimeError(
-                "The particle gets lost, the fixed point cannot \
-be found."
+                "The particle gets lost, the fixed point cannot be found."
             )
 
         if np.all(np.abs(accuracies) <= self.tol):
@@ -1201,22 +1207,15 @@ be found."
 
     def find_fp(
         self,
-        limits: list[list],
+        limits: list[list[float]],
         delta0: float = 0.0,
-        co_guess: dict[str, float] = {
-            "x": 0.0,
-            "px": 0.0,
-            "y": 0.0,
-            "py": 0.0,
-            "zeta": 0.0,
-            "ptau": 0.0,
-        },
+        co_guess: Union[dict[str, float], None] = None,
         num_pts: int = 100,
         max_num_iter: int = 100,
-        nemitt_x=1e-6,
-        nemitt_y=1e-6,
-        nemitt_z=1,
-    ) -> Tuple[dict, dict]:
+        nemitt_x: float = 1e-6,
+        nemitt_y: float = 1e-6,
+        nemitt_z: float = 1.0,
+    ) -> Tuple[dict[str, float], dict[str, float]]:
         """
         Function to run fixed point finding algorithm using bisection.
 
@@ -1227,8 +1226,7 @@ be found."
               point is wanted in transverse plane(s) only, in which case RF
               should be turned off in the line for meaningful results
             - co_guess: dictionary containing the closed orbit guess in case it
-              is different from 0, default `{'x': 0.0, 'px': 0.0, 'y': 0.0,
-              'py': 0.0, 'zeta': 0.0, 'ptau': 0.0}`
+              is different from 0, default `None`
             - num_pts: integer, number of points in each dimension to take
               on the initial grid for finding the rough fixed point, default
               `100`
@@ -1241,7 +1239,7 @@ be found."
               for converting to and from normalised coordinates, default `1e-6`
             - nemitt_z: float, normalised emittance in the longitudinal plane
               used for converting to and from normalised coordinates, default
-              `1`
+              `1.0`
 
         Output:
             - dictionary with coordinates of fixed point in real space
@@ -1249,6 +1247,15 @@ be found."
         """
 
         self.delta0 = delta0
+        if co_guess is None:
+            co_guess = {
+                "x": 0.0,
+                "px": 0.0,
+                "y": 0.0,
+                "py": 0.0,
+                "zeta": 0.0,
+                "ptau": 0.0,
+            }
         self.twiss = self.line.twiss(
             continue_on_closed_orbit_error=False,
             delta0=self.delta0,
@@ -1348,130 +1355,30 @@ and try again!"
 accuracy may not have been achieved!"
             )
 
+        if not isinstance(self.gbs_part, Particles) or not isinstance(
+            self.gbs_part_norm, NormedParticles
+        ):
+            raise ValueError("Particle objects are not properly initialised!")
+        self._reset_gbs_parts()
         if self.planes == "H":
-            if not isinstance(self.gbs_part, Particles) or not isinstance(
-                self.gbs_part_norm, NormedParticles
-            ):
-                raise ValueError("Particle objects are not properly initialised!")
-            self._reset_gbs_parts()
             self.gbs_part_norm.x_norm = np.asarray([fp_estimate[0]])
             self.gbs_part_norm.px_norm = np.asarray([fp_estimate[1]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
-
-            fp_coords_norm = {
-                "x_norm": self.gbs_part_norm.x_norm,
-                "px_norm": self.gbs_part_norm.px_norm,
-                "y_norm": self.gbs_part_norm.y_norm,
-                "py_norm": self.gbs_part_norm.py_norm,
-                "zeta_norm": self.gbs_part_norm.zeta_norm,
-                "pzeta_norm": self.gbs_part_norm.pzeta_norm,
-            }
-
-            fp_coords = {
-                "x": self.gbs_part.x,
-                "px": self.gbs_part.px,
-                "y": self.gbs_part.y,
-                "py": self.gbs_part.py,
-                "zeta": self.gbs_part.zeta,
-                "ptau": self.gbs_part.ptau,
-                "pzeta": self.gbs_part.pzeta,
-                "delta": self.gbs_part.delta,
-            }
         elif self.planes == "V":
-            if not isinstance(self.gbs_part, Particles) or not isinstance(
-                self.gbs_part_norm, NormedParticles
-            ):
-                raise ValueError("Particle objects are not properly initialised!")
-            self._reset_gbs_parts()
             self.gbs_part_norm.y_norm = np.asarray([fp_estimate[0]])
             self.gbs_part_norm.py_norm = np.asarray([fp_estimate[1]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
-
-            fp_coords_norm = {
-                "x_norm": self.gbs_part_norm.x_norm,
-                "px_norm": self.gbs_part_norm.px_norm,
-                "y_norm": self.gbs_part_norm.y_norm,
-                "py_norm": self.gbs_part_norm.py_norm,
-                "zeta_norm": self.gbs_part_norm.zeta_norm,
-                "pzeta_norm": self.gbs_part_norm.pzeta_norm,
-            }
-
-            fp_coords = {
-                "x": self.gbs_part.x,
-                "px": self.gbs_part.px,
-                "y": self.gbs_part.y,
-                "py": self.gbs_part.py,
-                "zeta": self.gbs_part.zeta,
-                "ptau": self.gbs_part.ptau,
-                "pzeta": self.gbs_part.pzeta,
-                "delta": self.gbs_part.delta,
-            }
         elif self.planes == "L":
-            if not isinstance(self.gbs_part, Particles) or not isinstance(
-                self.gbs_part_norm, NormedParticles
-            ):
-                raise ValueError("Particle objects are not properly initialised!")
-            self._reset_gbs_parts()
             self.gbs_part_norm.zeta_norm = np.asarray([fp_estimate[0]])
             self.gbs_part_norm.pzeta_norm = np.asarray([fp_estimate[1]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
-
-            fp_coords_norm = {
-                "x_norm": self.gbs_part_norm.x_norm,
-                "px_norm": self.gbs_part_norm.px_norm,
-                "y_norm": self.gbs_part_norm.y_norm,
-                "py_norm": self.gbs_part_norm.py_norm,
-                "zeta_norm": self.gbs_part_norm.zeta_norm,
-                "pzeta_norm": self.gbs_part_norm.pzeta_norm,
-            }
-
-            fp_coords = {
-                "x": self.gbs_part.x,
-                "px": self.gbs_part.px,
-                "y": self.gbs_part.y,
-                "py": self.gbs_part.py,
-                "zeta": self.gbs_part.zeta,
-                "ptau": self.gbs_part.ptau,
-                "pzeta": self.gbs_part.pzeta,
-                "delta": self.gbs_part.delta,
-            }
         elif self.planes == "HV":
-            if not isinstance(self.gbs_part, Particles) or not isinstance(
-                self.gbs_part_norm, NormedParticles
-            ):
-                raise ValueError("Particle objects are not properly initialised!")
-            self._reset_gbs_parts()
             self.gbs_part_norm.x_norm = np.asarray([fp_estimate[0]])
             self.gbs_part_norm.px_norm = np.asarray([fp_estimate[1]])
             self.gbs_part_norm.y_norm = np.asarray([fp_estimate[2]])
             self.gbs_part_norm.py_norm = np.asarray([fp_estimate[3]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
-
-            fp_coords_norm = {
-                "x_norm": self.gbs_part_norm.x_norm,
-                "px_norm": self.gbs_part_norm.px_norm,
-                "y_norm": self.gbs_part_norm.y_norm,
-                "py_norm": self.gbs_part_norm.py_norm,
-                "zeta_norm": self.gbs_part_norm.zeta_norm,
-                "pzeta_norm": self.gbs_part_norm.pzeta_norm,
-            }
-
-            fp_coords = {
-                "x": self.gbs_part.x,
-                "px": self.gbs_part.px,
-                "y": self.gbs_part.y,
-                "py": self.gbs_part.py,
-                "zeta": self.gbs_part.zeta,
-                "ptau": self.gbs_part.ptau,
-                "pzeta": self.gbs_part.pzeta,
-                "delta": self.gbs_part.delta,
-            }
         else:
-            if not isinstance(self.gbs_part, Particles) or not isinstance(
-                self.gbs_part_norm, NormedParticles
-            ):
-                raise ValueError("Particle objects are not properly initialised!")
-            self._reset_gbs_parts()
             self.gbs_part_norm.x_norm = np.asarray([fp_estimate[0]])
             self.gbs_part_norm.px_norm = np.asarray([fp_estimate[1]])
             self.gbs_part_norm.y_norm = np.asarray([fp_estimate[2]])
@@ -1480,57 +1387,54 @@ accuracy may not have been achieved!"
             self.gbs_part_norm.pzeta_norm = np.asarray([fp_estimate[5]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
 
-            fp_coords_norm = {
-                "x_norm": self.gbs_part_norm.x_norm,
-                "px_norm": self.gbs_part_norm.px_norm,
-                "y_norm": self.gbs_part_norm.y_norm,
-                "py_norm": self.gbs_part_norm.py_norm,
-                "zeta_norm": self.gbs_part_norm.zeta_norm,
-                "pzeta_norm": self.gbs_part_norm.pzeta_norm,
-            }
+        fp_coords_norm = {
+            "x_norm": self.gbs_part_norm.x_norm,
+            "px_norm": self.gbs_part_norm.px_norm,
+            "y_norm": self.gbs_part_norm.y_norm,
+            "py_norm": self.gbs_part_norm.py_norm,
+            "zeta_norm": self.gbs_part_norm.zeta_norm,
+            "pzeta_norm": self.gbs_part_norm.pzeta_norm,
+        }
 
-            fp_coords = {
-                "x": self.gbs_part.x,
-                "px": self.gbs_part.px,
-                "y": self.gbs_part.y,
-                "py": self.gbs_part.py,
-                "zeta": self.gbs_part.zeta,
-                "ptau": self.gbs_part.ptau,
-                "pzeta": self.gbs_part.pzeta,
-                "delta": self.gbs_part.delta,
-            }
-
-        self.gbs_part = None
-        self.gbs_part_norm = None
-        self.hs_part = None
-        self.hs_part_norm = None
-        self.grid_part = None
-        self.grid_part_norm = None
+        fp_coords = {
+            "x": self.gbs_part.x,
+            "px": self.gbs_part.px,
+            "y": self.gbs_part.y,
+            "py": self.gbs_part.py,
+            "zeta": self.gbs_part.zeta,
+            "ptau": self.gbs_part.ptau,
+            "pzeta": self.gbs_part.pzeta,
+            "delta": self.gbs_part.delta,
+        }
 
         return fp_coords, fp_coords_norm
 
     def update_line(
         self,
         line: Line,
-        co_guess: dict[str, float] = {
-            "x": 0.0,
-            "px": 0.0,
-            "y": 0.0,
-            "py": 0.0,
-            "zeta": 0.0,
-            "ptau": 0.0,
-        },
+        co_guess: Union[dict[str, float], None] = None,
     ) -> None:
         """
-        Function to update the line associated with the fixed point
-        finder.
+        Function to update the line associated with the fixed point finder.
 
         Input:
             - line: xsuite line
+            - co_guess: dictionary of closed orbit guess coordinates in case it
+              is different from 0, default `None`
 
         Output:
             - no output
         """
+        if co_guess is None:
+            co_guess = {
+                "x": 0.0,
+                "px": 0.0,
+                "y": 0.0,
+                "py": 0.0,
+                "zeta": 0.0,
+                "ptau": 0.0,
+            }
+
         self.line = copy.deepcopy(line)
         self.line.discard_tracker()
         self.line.build_tracker(_context=xo.ContextCpu())
