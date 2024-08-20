@@ -1,4 +1,5 @@
 import copy
+from typing import Union
 
 import numpy as np
 import scipy.constants as sc  # type: ignore[import-untyped]
@@ -553,14 +554,7 @@ def get_orbit_points(
     num_pts: int,
     num_turns: int = 2048,
     delta0: float = 0.0,
-    co_guess: dict[str, float] = {
-        "x": 0.0,
-        "px": 0.0,
-        "y": 0.0,
-        "py": 0.0,
-        "zeta": 0.0,
-        "ptau": 0.0,
-    },
+    co_guess: Union[dict[str, float], None] = None,
     nemitt_x: float = 1e-6,
     nemitt_y: float = 1e-6,
     nemitt_z: float = 1,
@@ -586,8 +580,7 @@ def get_orbit_points(
           default `0`, will only be considered if the requested planes are
           transverse only
         - co_guess: dictionary containing the closed orbit guess in case it is
-          different from 0, default `{'x': 0.0, 'px': 0.0, 'y': 0.0, 'py': 0.0,
-          'zeta': 0.0, 'ptau': 0.0}`
+          different from 0, default `None`
         - nemitt_x: normalised emittance in horizontal plane, default `1e-6`
         - nemitt_y: normalised emittance in vertical plane, default `1e-6`
         - nemitt_z: normalised emittance in longitudinal plane, default `1`
@@ -635,6 +628,17 @@ def get_orbit_points(
     # Copy line
     line_int = copy.deepcopy(line)
     line_int.build_tracker()
+
+    # Set closed orbit guess
+    if co_guess is None:
+        co_guess = {
+            "x": 0.0,
+            "px": 0.0,
+            "y": 0.0,
+            "py": 0.0,
+            "zeta": 0.0,
+            "ptau": 0.0,
+        }
 
     # Twiss
     if planes not in ["H", "V", "L", "HV", "HVL"]:
