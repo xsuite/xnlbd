@@ -66,7 +66,7 @@ def _get_H_orbit_points(
         part_on_co.x[0], part_on_co.x[0] + line.config.XTRACK_GLOBAL_XY_LIMIT, num_pts
     )
     part.x = x_test
-    part_copy = copy.deepcopy(part)
+    part_copy = part.copy()
     line.track(
         part,
         num_turns=num_turns,
@@ -247,7 +247,7 @@ def _get_V_orbit_points(
         part_on_co.y[0], part_on_co.y[0] + line.config.XTRACK_GLOBAL_XY_LIMIT, num_pts
     )
     part.y = y_test
-    part_copy = copy.deepcopy(part)
+    part_copy = part.copy()
     line.track(
         part,
         num_turns=num_turns,
@@ -626,7 +626,7 @@ def get_orbit_points(
     """
 
     # Copy line
-    line_int = copy.deepcopy(line)
+    line_int = line.copy()
     line_int.build_tracker()
 
     # Set closed orbit guess

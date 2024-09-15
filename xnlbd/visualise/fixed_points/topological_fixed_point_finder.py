@@ -65,7 +65,7 @@ class FPFinder:
             self.n = 6
         self.planes = planes
 
-        self.line: Line = copy.deepcopy(line)
+        self.line: Line = line.copy()
         self.line.discard_tracker()
         self.line.build_tracker(_context=xo.ContextCpu())
         if co_guess == None:
@@ -1149,7 +1149,7 @@ n-polygon."
             self.gbs_part_norm, NormedParticles
         ):
             raise ValueError("Particle objects are not properly initialised!")
-        self.gbs_part = copy.deepcopy(self.twiss.particle_on_co)
+        self.gbs_part = self.twiss.particle_on_co.copy()
         self.gbs_part_norm.phys_to_norm(self.gbs_part)
 
     def _reset_hs_parts(self) -> None:
@@ -1261,7 +1261,7 @@ n-polygon."
             delta0=self.delta0,
             co_guess=co_guess,
         )
-        self.gbs_part = copy.deepcopy(self.twiss.particle_on_co)
+        self.gbs_part = self.twiss.particle_on_co.copy()
         self.gbs_part_norm = NormedParticles(
             self.twiss,
             nemitt_x,
@@ -1435,7 +1435,7 @@ accuracy may not have been achieved!"
                 "ptau": 0.0,
             }
 
-        self.line = copy.deepcopy(line)
+        self.line = line.copy()
         self.line.discard_tracker()
         self.line.build_tracker(_context=xo.ContextCpu())
         self.twiss = line.twiss(continue_on_closed_orbit_error=False, co_guess=co_guess)
