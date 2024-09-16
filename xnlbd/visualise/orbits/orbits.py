@@ -149,6 +149,7 @@ def _get_H_orbit_points(
     for i in range(num_pts):
         curr_part = xt.Particles(
             p0c=part_on_co.p0c,
+            mass0=part_on_co.mass0,
             x=orbit_points["x"][i, :],
             px=orbit_points["px"][i, :],
             y=orbit_points["y"][i, :],
@@ -330,6 +331,7 @@ def _get_V_orbit_points(
     for i in range(num_pts):
         curr_part = xt.Particles(
             p0c=part_on_co.p0c,
+            mass0=part_on_co.mass0,
             x=orbit_points["x"][i, :],
             px=orbit_points["px"][i, :],
             y=orbit_points["y"][i, :],
@@ -500,6 +502,7 @@ def _get_L_orbit_points(
     for i in range(num_pts):
         curr_part = xt.Particles(
             p0c=part_on_co.p0c,
+            mass0=part_on_co.mass0,
             x=orbit_points["x"][i, :],
             px=orbit_points["px"][i, :],
             y=orbit_points["y"][i, :],
@@ -664,6 +667,7 @@ def get_orbit_points(
         except ValueError:
             part_on_co_at_ele = xt.Particles(
                 p0c=twiss_bc.particle_on_co.p0c,
+                mass0=twiss_bc.particle_on_co.mass0,
                 x=twiss_bc.x[twiss_bc.name == element],
                 px=twiss_bc.px[twiss_bc.name == element],
                 y=twiss_bc.y[twiss_bc.name == element],
@@ -682,6 +686,7 @@ def get_orbit_points(
         except ValueError:
             part_on_co_at_ele = xt.Particles(
                 p0c=twiss_bc.particle_on_co.p0c,
+                mass0=twiss_bc.particle_on_co.mass0,
                 x=twiss_bc.x[twiss_bc.name == element],
                 px=twiss_bc.px[twiss_bc.name == element],
                 y=twiss_bc.y[twiss_bc.name == element],
@@ -698,6 +703,7 @@ def get_orbit_points(
     # Calculate closed orbit in normalised coordinates
     part_on_co = xt.Particles(
         p0c=twiss.particle_on_co.p0c,
+        mass0=twiss.particle_on_co.mass0,
         x=twiss.x[0],
         px=twiss.px[0],
         y=twiss.y[0],
@@ -715,6 +721,7 @@ def get_orbit_points(
     if "H" in planes:
         part = xt.Particles(
             p0c=twiss.particle_on_co.p0c,
+            mass0=twiss.particle_on_co.mass0,
             x=np.ones(num_pts) * twiss.x[0],
             px=np.ones(num_pts) * twiss.px[0],
             y=np.ones(num_pts) * twiss.y[0],
@@ -742,6 +749,7 @@ def get_orbit_points(
     if "V" in planes:
         part = xt.Particles(
             p0c=twiss.particle_on_co.p0c,
+            mass0=twiss.particle_on_co.mass0,
             x=np.ones(num_pts) * twiss.x[0],
             px=np.ones(num_pts) * twiss.px[0],
             y=np.ones(num_pts) * twiss.y[0],
@@ -769,6 +777,7 @@ def get_orbit_points(
     if "L" in planes:
         part = xt.Particles(
             p0c=twiss.particle_on_co.p0c,
+            mass0=twiss.particle_on_co.mass0,
             x=np.ones(num_pts) * twiss.x[0],
             px=np.ones(num_pts) * twiss.px[0],
             y=np.ones(num_pts) * twiss.y[0],
