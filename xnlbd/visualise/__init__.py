@@ -1,2 +1,1 @@
-from . import orbits
-from . import fixed_points
+from . import fixed_points, orbits
