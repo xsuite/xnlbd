@@ -5,6 +5,7 @@ import numpy as np
 import scipy.constants as sc  # type: ignore[import-untyped]
 import xpart as xp  # type: ignore[import-untyped]
 import xtrack as xt  # type: ignore[import-untyped]
+import xcoll as xc  # type: ignore[import-untyped]
 from xtrack import Line  # type: ignore[import-untyped]
 from xtrack.twiss import TwissTable  # type: ignore[import-untyped]
 
@@ -561,6 +562,7 @@ def get_orbit_points(
     nemitt_x: float = 1e-6,
     nemitt_y: float = 1e-6,
     nemitt_z: float = 1,
+    xcoll_scattering: bool = False,
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     Function to track particles and record their coordinates every turn to
@@ -587,6 +589,8 @@ def get_orbit_points(
         - nemitt_x: normalised emittance in horizontal plane, default `1e-6`
         - nemitt_y: normalised emittance in vertical plane, default `1e-6`
         - nemitt_z: normalised emittance in longitudinal plane, default `1`
+        - xcoll_scattering: True if scattering should be enabled, otherwise 
+          False, default `False`
 
     Output:
         - dictionary with the following structure:
@@ -631,6 +635,8 @@ def get_orbit_points(
     # Copy line
     line_int = line.copy()
     line_int.build_tracker()
+    if xcoll_scattering:
+        xc.disable_scattering(line_int)
 
     # Set closed orbit guess
     if co_guess is None:
@@ -714,6 +720,10 @@ def get_orbit_points(
     part_on_co_norm = NormedParticles(
         twiss, nemitt_x=nemitt_x, nemitt_y=nemitt_y, nemitt_z=nemitt_z, part=part_on_co
     )
+
+    if xcoll_scattering:
+        xc.assign_optics_to_collimators(line=line_int)
+        xc.enable_scattering(line=line_int)
 
     orbits_H = {}
     orbits_V = {}
