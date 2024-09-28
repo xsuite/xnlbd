@@ -2,8 +2,8 @@ import copy
 import pathlib
 
 import numpy as np
-import xpart as xp  # type: ignore[import-untyped]
-import xtrack as xt  # type: ignore[import-untyped]
+import xpart as xp  # type: ignore
+import xtrack as xt  # type: ignore
 
 from xnlbd.track import Henonmap
 from xnlbd.visualise.fixed_points import FPFinder

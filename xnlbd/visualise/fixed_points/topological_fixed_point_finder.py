@@ -4,11 +4,11 @@ import warnings
 from typing import Tuple, Union
 
 import numpy as np
-import xobjects as xo  # type: ignore[import-untyped]
-import xtrack as xt  # type: ignore[import-untyped]
-from xtrack import Line  # type: ignore[import-untyped]
-from xtrack.particles.particles import Particles  # type: ignore[import-untyped]
-from xtrack.twiss import TwissTable  # type: ignore[import-untyped]
+import xobjects as xo  # type: ignore
+import xtrack as xt  # type: ignore
+from xtrack import Line  # type: ignore
+from xtrack.particles.particles import Particles  # type: ignore
+from xtrack.twiss import TwissTable  # type: ignore
 
 from xnlbd.tools import NormedParticles
 
