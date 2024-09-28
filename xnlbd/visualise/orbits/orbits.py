@@ -2,12 +2,12 @@ import copy
 from typing import Union
 
 import numpy as np
-import scipy.constants as sc  # type: ignore[import-untyped]
-import xpart as xp  # type: ignore[import-untyped]
-import xtrack as xt  # type: ignore[import-untyped]
-import xcoll as xc  # type: ignore[import-untyped]
-from xtrack import Line  # type: ignore[import-untyped]
-from xtrack.twiss import TwissTable  # type: ignore[import-untyped]
+import scipy.constants as sc  # type: ignore
+import xcoll as xc  # type: ignore
+import xpart as xp  # type: ignore
+import xtrack as xt  # type: ignore
+from xtrack import Line  # type: ignore
+from xtrack.twiss import TwissTable  # type: ignore
 
 from xnlbd.tools import NormedParticles
 
@@ -589,7 +589,7 @@ def get_orbit_points(
         - nemitt_x: normalised emittance in horizontal plane, default `1e-6`
         - nemitt_y: normalised emittance in vertical plane, default `1e-6`
         - nemitt_z: normalised emittance in longitudinal plane, default `1`
-        - xcoll_scattering: True if scattering should be enabled, otherwise 
+        - xcoll_scattering: True if scattering should be enabled, otherwise
           False, default `False`
 
     Output:
