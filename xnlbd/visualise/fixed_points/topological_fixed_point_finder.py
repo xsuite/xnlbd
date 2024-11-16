@@ -763,7 +763,7 @@ class FPFinder:
             dist += (arrays[-1][1] - arrays[-1][0]) ** 2
         rad = np.sqrt(dist)
 
-        grid_coords = np.meshgrid(*arrays)
+        grid_coords = list(np.meshgrid(*arrays))
         for i in range(self.n):
             grid_coords[i] = grid_coords[i].flatten()
 
@@ -1405,6 +1405,8 @@ accuracy may not have been achieved!"
             "ptau": self.gbs_part.ptau,
             "pzeta": self.gbs_part.pzeta,
             "delta": self.gbs_part.delta,
+            "mass0": self.gbs_part.mass0,
+            "p0c": self.gbs_part.p0c,
         }
 
         return fp_coords, fp_coords_norm

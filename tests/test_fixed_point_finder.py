@@ -59,7 +59,6 @@ def test_2D_SPS_no_co_on_momentum():
     Track and compare to itself
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -77,7 +76,6 @@ def test_2D_SPS_no_co_on_momentum():
     )
 
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -147,7 +145,6 @@ def test_2D_SPS_no_co_off_momentum():
     Track and compare to itself
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -165,7 +162,6 @@ def test_2D_SPS_no_co_off_momentum():
     )
 
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -247,7 +243,6 @@ def test_2D_SPS_co_on_momentum():
     Track and compare to itself
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -265,7 +260,6 @@ def test_2D_SPS_co_on_momentum():
     )
 
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -330,7 +324,6 @@ def test_2D_Henon():
     Track and compare to itself
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -348,7 +341,6 @@ def test_2D_Henon():
     )
 
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -433,7 +425,6 @@ def test_4D_Henon():
     Track and compare to itself
     """
     particle_at_fp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **fp_estimate,
     )
     line.track(
