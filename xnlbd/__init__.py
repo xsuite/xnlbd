@@ -1,2 +1,3 @@
 from . import analyse, tools, track, visualise
-from ._version import __version__
+
+__version__ = "0.0.2"
