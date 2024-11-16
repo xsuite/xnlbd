@@ -64,7 +64,6 @@ def example_2D_SPS_no_co_on_momentum():
     Track fixed points to recover all fixed points
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -79,7 +78,6 @@ def example_2D_SPS_no_co_on_momentum():
     )
     all_ufp_norm.phys_to_norm(all_ufp)
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -223,7 +221,6 @@ def example_2D_SPS_no_co_off_momentum():
     Track fixed points to recover all fixed points
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -238,7 +235,6 @@ def example_2D_SPS_no_co_off_momentum():
     )
     all_ufp_norm.phys_to_norm(all_ufp)
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -393,7 +389,6 @@ def example_2D_SPS_co_on_momentum():
     Track fixed points to recover all fixed points
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -408,7 +403,6 @@ def example_2D_SPS_co_on_momentum():
     )
     all_ufp_norm.phys_to_norm(all_ufp)
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
@@ -547,7 +541,6 @@ def example_2D_Henon():
     Track fixed points to recover all fixed points
     """
     particle_at_ufp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **ufp,
     )
     line.track(
@@ -562,7 +555,6 @@ def example_2D_Henon():
     )
     all_ufp_norm.phys_to_norm(all_ufp)
     particle_at_sfp = xt.Particles(
-        p0c=line.particle_ref.p0c,
         **sfp,
     )
     line.track(
