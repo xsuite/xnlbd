@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple, List, Union, Optional
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
@@ -50,12 +50,12 @@ def gali_extractor(
     input_writer: GenericWriter,
     output_writer: GenericWriter,
     times: Union[List[int], np.ndarray],
-    coord_list: Union[Tuple[str], List[str]]=tuple(NORM_COORD_LIST),
-    which_gali: str="all",
-    custom_combos: Optional[List[Tuple[str]]]=None,
-    preload_data: bool=False,
-    coord_list_nested: Optional[List[str]]=None,
-    overwrite: bool=False,
+    coord_list: Union[Tuple[str], List[str]] = tuple(NORM_COORD_LIST),
+    which_gali: str = "all",
+    custom_combos: Optional[List[Tuple[str]]] = None,
+    preload_data: bool = False,
+    coord_list_nested: Optional[List[str]] = None,
+    overwrite: bool = False,
 ):
     """Calculate the Generalized Alignment Index (GALI) for a set of
     coordinates managed by the GhostParticleManager class and tracked with
@@ -109,7 +109,9 @@ def gali_extractor(
         for t in tqdm(times):
             dataset_name = f"gali{len(combo)}/{'_'.join(combo)}/{t}"
             if not overwrite and output_writer.dataset_exists(dataset_name):
-                print(f"Skipping {dataset_name} as it already exists in the output file")
+                print(
+                    f"Skipping {dataset_name} as it already exists in the output file"
+                )
                 continue
 
             gali_matrix = np.asarray(

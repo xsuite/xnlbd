@@ -1,15 +1,14 @@
-import numpy as np
-from pathlib import Path
 import warnings
+from pathlib import Path
 
-from scipy.constants import e as qe
-from scipy.constants import c as clight
-from scipy.constants import epsilon_0
-
+import numpy as np
 import xobjects as xo
 import xpart as xp
 import xtrack as xt
 import xtrack.twiss as xtw
+from scipy.constants import c as clight
+from scipy.constants import e as qe
+from scipy.constants import epsilon_0
 
 from ...tools.normed_particles import NormedParticles
 
@@ -514,15 +513,15 @@ class GhostParticleManager(xo.HybridClass):
         """Yield progressively the current module and direction of the
         displacement of the various ghost particles, by populating the module
         and direction xobjects accordingly.
-        
+
         The method yields the name of the ghost particle, but the data will be
         actually stored in the module and direction xobjects.
-        
+
         Yield
         -----
         str
             Name of the ghost particle
-        
+
         """
         if self._use_norm_coord is False:
             self.idx_a = self._part.particle_id
@@ -578,7 +577,7 @@ class GhostParticleManager(xo.HybridClass):
         -----
         str
             Name of the ghost particle
-        
+
         """
         self.target_module = module
         if self._use_norm_coord is False:

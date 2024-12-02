@@ -1,13 +1,13 @@
-from typing import Optional, Tuple, Union, List
 import warnings
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import xtrack as xt
 from tqdm.auto import tqdm
 
 from ...tools.generic_writer import GenericWriter, LocalWriter
-from .ghost_particle_manager import GhostParticleManager
 from ...tools.series import birkhoff_weights
+from .ghost_particle_manager import GhostParticleManager
 
 
 def track_displacement(

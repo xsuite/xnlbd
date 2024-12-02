@@ -4,7 +4,7 @@ import numpy as np
 import xobjects as xo  # type: ignore[import-untyped]
 from scipy.special import factorial  # type: ignore[import-untyped]
 from xtrack.base_element import BeamElement  # type: ignore[import-not-found]
-from xtrack.random import RandomUniform, RandomExponential, RandomNormal
+from xtrack.random import RandomExponential, RandomNormal, RandomUniform
 
 _pkg_root = Path(__file__).parent.absolute()
 
@@ -517,13 +517,13 @@ class RandomNormalKick(BeamElement):
         y_module=0.0,
         py_module=0.0,
         zeta_module=0.0,
-        ptau_module=0.0,  
+        ptau_module=0.0,
         **kwargs,
     ):
-        if '_xobject' in kwargs and kwargs['_xobject'] is not None:
+        if "_xobject" in kwargs and kwargs["_xobject"] is not None:
             self.xoinitialize(**kwargs)
             return
-        
+
         modules = {
             "x_flag": x_module,
             "px_flag": px_module,

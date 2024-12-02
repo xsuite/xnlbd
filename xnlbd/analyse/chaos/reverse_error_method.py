@@ -1,11 +1,10 @@
-from typing import Optional, Tuple, Union, List
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import xobjects as xo
 import xpart as xp
 import xtrack as xt
 import xtrack.twiss as xtw
-
 from tqdm.auto import tqdm
 
 from ...tools.generic_writer import GenericWriter, LocalWriter
