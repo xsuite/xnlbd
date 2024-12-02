@@ -50,7 +50,7 @@ def gali_extractor(
     input_writer: GenericWriter,
     output_writer: GenericWriter,
     times: Union[List[int], np.ndarray],
-    coord_list: List[str]=NORM_COORD_LIST,
+    coord_list: Union[Tuple[str], List[str]]=tuple(NORM_COORD_LIST),
     which_gali: str="all",
     custom_combos: Optional[List[Tuple[str]]]=None,
     preload_data: bool=False,
