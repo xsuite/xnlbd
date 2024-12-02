@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-import xobjects as xo  # type: ignore[import-not-found]
+import xobjects as xo  # type: ignore[import-untyped]
 from scipy.special import factorial  # type: ignore[import-untyped]
 from xtrack.base_element import BeamElement  # type: ignore[import-not-found]
 from xtrack.random import RandomUniform, RandomExponential, RandomNormal
@@ -159,7 +159,7 @@ class Henonmap(BeamElement):
         ddx=0,
         multipole_coeffs=None,
         norm=False,
-        **kwargs
+        **kwargs,
     ):
         if twiss_params is None:
             twiss_params = [0.0, 1.0, 0.0, 1.0]
@@ -333,6 +333,13 @@ class ModulatedHenonmap(BeamElement):
         Number of tunes available in the tune arrays, if a particle is tracked
         above that number, a mod operator is used to roll-over the array. If the
         particle has negative at_turn value, the array is rolled backwards.
+    n_par_multipoles: int
+        Number of different multipole strengths provided. It is evaluated
+        automatically from the length of the multipole_coeffs array provided.
+        It is used then at runtime to apply the same loop of strenghts to the
+        according turns via modulo operator. If only a single multipole strength
+        is provided, this value is 1, and the same strength is applied to all
+        turns.
     norm: int
         1 if input coordinates are already normalised, 0 if not.
 
@@ -386,7 +393,7 @@ class ModulatedHenonmap(BeamElement):
         ddx=0,
         multipole_coeffs=None,
         norm=False,
-        **kwargs
+        **kwargs,
     ):
         if omega_x is None:
             omega_x = np.zeros(100)

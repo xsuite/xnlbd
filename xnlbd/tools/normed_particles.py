@@ -1,11 +1,11 @@
-import numpy as np
 from pathlib import Path
 from typing import Optional
 
-import xobjects as xo
-import xpart as xp
-import xtrack as xt
-import xtrack.twiss as xtw
+import numpy as np
+import xobjects as xo  # type: ignore[import-untyped]
+import xpart as xp  # type: ignore[import-untyped]
+import xtrack as xt  # type: ignore[import-untyped]
+import xtrack.twiss as xtw  # type: ignore[import-untyped]
 
 
 class NormedParticles(xo.HybridClass):
