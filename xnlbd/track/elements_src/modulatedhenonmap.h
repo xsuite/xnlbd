@@ -57,17 +57,10 @@ void ModulatedHenonmap_track_local_particle(ModulatedHenonmapData el, LocalParti
             } while (at_turn_multipole < 0);
         }
 
-        #ifdef XSUITE_BACKTRACK
         double const sin_omega_x = ModulatedHenonmapData_get_sin_omega_x(el, at_turn);
         double const cos_omega_x = ModulatedHenonmapData_get_cos_omega_x(el, at_turn);
         double const sin_omega_y = ModulatedHenonmapData_get_sin_omega_y(el, at_turn);
         double const cos_omega_y = ModulatedHenonmapData_get_cos_omega_y(el, at_turn);
-        #else
-        double const sin_omega_x = ModulatedHenonmapData_get_sin_omega_x(el, at_turn);
-        double const cos_omega_x = ModulatedHenonmapData_get_cos_omega_x(el, at_turn);
-        double const sin_omega_y = ModulatedHenonmapData_get_sin_omega_y(el, at_turn);
-        double const cos_omega_y = ModulatedHenonmapData_get_cos_omega_y(el, at_turn);
-        #endif
 
         double x_hat, px_hat, y_hat, py_hat, x_hat_f, px_hat_f;
         if (norm)
