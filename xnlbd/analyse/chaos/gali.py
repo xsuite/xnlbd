@@ -2,7 +2,7 @@ import itertools
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-from numba import njit
+from numba import njit  # type: ignore[import-untyped]
 from tqdm.auto import tqdm
 
 from ...tools.generic_writer import GenericWriter, H5pyWriter, LocalWriter

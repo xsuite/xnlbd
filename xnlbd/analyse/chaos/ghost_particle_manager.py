@@ -2,13 +2,13 @@ import warnings
 from pathlib import Path
 
 import numpy as np
-import xobjects as xo
-import xpart as xp
-import xtrack as xt
-import xtrack.twiss as xtw
-from scipy.constants import c as clight
-from scipy.constants import e as qe
-from scipy.constants import epsilon_0
+import xobjects as xo  # type: ignore[import-untyped, import-not-found]
+import xpart as xp  # type: ignore[import-untyped, import-not-found]
+import xtrack as xt  # type: ignore[import-untyped, import-not-found]
+import xtrack.twiss as xtw  # type: ignore[import-untyped, import-not-found]
+from scipy.constants import c as clight  # type: ignore[import-untyped]
+from scipy.constants import e as qe  # type: ignore[import-untyped]
+from scipy.constants import epsilon_0  # type: ignore[import-untyped]
 
 from ...tools.normed_particles import NormedParticles
 

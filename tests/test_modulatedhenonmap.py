@@ -1,8 +1,10 @@
 import numpy as np
-import xpart as xp  # type: ignore
-import xtrack as xt  # type: ignore
-from scipy.special import factorial  # type: ignore
-from xobjects.test_helpers import for_all_test_contexts  # type: ignore
+import xpart as xp  # type: ignore[import-untyped, import-not-found]
+import xtrack as xt  # type: ignore[import-untyped, import-not-found]
+from scipy.special import factorial  # type: ignore[import-untyped]
+from xobjects.test_helpers import (  # type: ignore[import-untyped, import-not-found]
+    for_all_test_contexts,
+)
 
 from xnlbd.track import Henonmap, ModulatedHenonmap
 
