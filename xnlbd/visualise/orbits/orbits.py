@@ -2,12 +2,11 @@ import copy
 from typing import Union
 
 import numpy as np
-import scipy.constants as sc  # type: ignore
-import xcoll as xc  # type: ignore
-import xpart as xp  # type: ignore
-import xtrack as xt  # type: ignore
-from xtrack import Line  # type: ignore
-from xtrack.twiss import TwissTable  # type: ignore
+import scipy.constants as sc  # type: ignore[import-untyped, import-not-found]
+import xcoll as xc  # type: ignore[import-untyped, import-not-found]
+import xtrack as xt  # type: ignore[import-untyped, import-not-found]
+from xtrack import Line  # type: ignore[import-untyped, import-not-found]
+from xtrack.twiss import TwissTable  # type: ignore[import-untyped, import-not-found]
 
 from xnlbd.tools import NormedParticles
 
@@ -636,7 +635,10 @@ def get_orbit_points(
     line_int = line.copy()
     line_int.build_tracker()
     if xcoll_scattering:
-        xc.disable_scattering(line_int)
+        line_int.scattering.disable()
+    time_dep_vars = line_int.enable_time_dependent_vars
+    if time_dep_vars:
+        line_int.enable_time_dependent_vars = False
 
     # Set closed orbit guess
     if co_guess is None:
@@ -723,7 +725,9 @@ def get_orbit_points(
 
     if xcoll_scattering:
         xc.assign_optics_to_collimators(line=line_int)
-        xc.enable_scattering(line=line_int)
+        line_int.scattering.enable()
+    if time_dep_vars:
+        line_int.enable_time_dependent_vars = True
 
     orbits_H = {}
     orbits_V = {}
