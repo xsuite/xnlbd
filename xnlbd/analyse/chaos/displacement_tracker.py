@@ -2,7 +2,7 @@ import warnings
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import xtrack as xt
+import xtrack as xt  # type: ignore[import-untyped, import-not-found]
 from tqdm.auto import tqdm
 
 from ...tools.generic_writer import GenericWriter, LocalWriter

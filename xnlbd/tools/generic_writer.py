@@ -2,7 +2,7 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Optional
 
-import h5py
+import h5py  # type: ignore[import-untyped]
 import numpy as np
 
 

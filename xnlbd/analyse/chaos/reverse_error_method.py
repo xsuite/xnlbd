@@ -1,10 +1,10 @@
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import xobjects as xo
-import xpart as xp
-import xtrack as xt
-import xtrack.twiss as xtw
+import xobjects as xo  # type: ignore[import-untyped, import-not-found]
+import xpart as xp  # type: ignore[import-untyped, import-not-found]
+import xtrack as xt  # type: ignore[import-untyped, import-not-found]
+import xtrack.twiss as xtw  # type: ignore[import-untyped, import-not-found]
 from tqdm.auto import tqdm
 
 from ...tools.generic_writer import GenericWriter, LocalWriter

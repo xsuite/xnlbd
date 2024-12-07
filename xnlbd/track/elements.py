@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-import xobjects as xo  # type: ignore[import-untyped]
+import xobjects as xo  # type: ignore[import-untyped, import-not-found]
 from scipy.special import factorial  # type: ignore[import-untyped]
 from xtrack.base_element import BeamElement  # type: ignore[import-not-found]
 from xtrack.random import (  # type: ignore[import-not-found]
