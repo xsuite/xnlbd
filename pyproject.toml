@@ -1,19 +1,5 @@
 [build-system]
-requires = [
-    "setuptools", 
-    "wheel", 
-    "numpy", 
-    "pandas", 
-    "scipy", 
-    "sympy",      
-    "matplotlib",   
-    "h5py",
-    "xobjects>=0.4.1",
-    "xdeps>=0.6.0",
-    "xpart>=0.18.2",
-    "xtrack>=0.61.0",
-    "xcoll>=0.5.0",
-]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
@@ -49,7 +35,7 @@ dependencies = [
     "xdeps>=0.6.0",
     "xpart>=0.18.2",
     "xtrack>=0.61.0",
-    "xcoll>=0.5.0",
+    "xcoll>=0.5.8",
     "numpy",
     "pandas",
     "scipy",

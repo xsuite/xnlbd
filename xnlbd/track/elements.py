@@ -4,7 +4,11 @@ import numpy as np
 import xobjects as xo  # type: ignore[import-untyped]
 from scipy.special import factorial  # type: ignore[import-untyped]
 from xtrack.base_element import BeamElement  # type: ignore[import-not-found]
-from xtrack.random import RandomExponential, RandomNormal, RandomUniform
+from xtrack.random import (  # type: ignore[import-not-found]
+    RandomExponential,
+    RandomNormal,
+    RandomUniform,
+)
 
 _pkg_root = Path(__file__).parent.absolute()
 
