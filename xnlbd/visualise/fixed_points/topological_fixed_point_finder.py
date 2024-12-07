@@ -4,11 +4,13 @@ import warnings
 from typing import Tuple, Union
 
 import numpy as np
-import xobjects as xo  # type: ignore
-import xtrack as xt  # type: ignore
-from xtrack import Line  # type: ignore
-from xtrack.particles.particles import Particles  # type: ignore
-from xtrack.twiss import TwissTable  # type: ignore
+import xobjects as xo  # type: ignore[import-untyped, import-not-found]
+import xtrack as xt  # type: ignore[import-untyped, import-not-found]
+from xtrack import Line  # type: ignore[import-untyped, import-not-found]
+from xtrack.particles.particles import (  # type: ignore[import-untyped, import-not-found]
+    Particles,
+)
+from xtrack.twiss import TwissTable  # type: ignore[import-untyped, import-not-found]
 
 from xnlbd.tools import NormedParticles
 
@@ -77,9 +79,16 @@ class FPFinder:
                 "zeta": 0.0,
                 "ptau": 0.0,
             }
-        self.twiss: TwissTable = line.twiss(
-            continue_on_closed_orbit_error=False, co_guess=co_guess
-        )
+        if line.enable_time_dependent_vars:
+            line.enable_time_dependent_vars = False
+            self.twiss: TwissTable = line.twiss(
+                continue_on_closed_orbit_error=False, co_guess=co_guess
+            )
+            line.enable_time_dependent_vars = True
+        else:
+            self.twiss: TwissTable = line.twiss(
+                continue_on_closed_orbit_error=False, co_guess=co_guess
+            )
         self.order: int = order
         self.tol: float = tol
         self.verbose: int = verbose
@@ -127,9 +136,7 @@ class FPFinder:
             self.gbs_part_norm.px_norm = np.asarray([point[1]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
 
-            self.line.track(
-                self.gbs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.gbs_part, num_turns=self.order)
 
             self.gbs_part_norm.phys_to_norm(self.gbs_part)
 
@@ -149,9 +156,7 @@ class FPFinder:
             self.hs_part_norm.px_norm = copy.deepcopy(point[1])
             self.hs_part = self.hs_part_norm.norm_to_phys(self.hs_part)
 
-            self.line.track(
-                self.hs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.hs_part, num_turns=self.order)
 
             self.hs_part_norm.phys_to_norm(self.hs_part)
 
@@ -171,9 +176,7 @@ class FPFinder:
             self.grid_part_norm.px_norm = copy.deepcopy(point[1])
             self.grid_part = self.grid_part_norm.norm_to_phys(self.grid_part)
 
-            self.line.track(
-                self.grid_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.grid_part, num_turns=self.order)
 
             self.grid_part_norm.phys_to_norm(self.grid_part)
 
@@ -211,9 +214,7 @@ class FPFinder:
             self.gbs_part_norm.py_norm = np.asarray([point[1]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
 
-            self.line.track(
-                self.gbs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.gbs_part, num_turns=self.order)
 
             self.gbs_part_norm.phys_to_norm(self.gbs_part)
 
@@ -233,9 +234,7 @@ class FPFinder:
             self.hs_part_norm.py_norm = copy.deepcopy(point[1])
             self.hs_part = self.hs_part_norm.norm_to_phys(self.hs_part)
 
-            self.line.track(
-                self.hs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.hs_part, num_turns=self.order)
 
             self.hs_part_norm.phys_to_norm(self.hs_part)
 
@@ -255,9 +254,7 @@ class FPFinder:
             self.grid_part_norm.py_norm = copy.deepcopy(point[1])
             self.grid_part = self.grid_part_norm.norm_to_phys(self.grid_part)
 
-            self.line.track(
-                self.grid_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.grid_part, num_turns=self.order)
 
             self.grid_part_norm.phys_to_norm(self.grid_part)
 
@@ -295,9 +292,7 @@ class FPFinder:
             self.gbs_part_norm.pzeta_norm = np.asarray([point[1]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
 
-            self.line.track(
-                self.gbs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.gbs_part, num_turns=self.order)
 
             self.gbs_part_norm.phys_to_norm(self.gbs_part)
 
@@ -377,9 +372,7 @@ class FPFinder:
             self.gbs_part_norm.py_norm = np.asarray([point[3]])
             self.gbs_part = self.gbs_part_norm.norm_to_phys(self.gbs_part)
 
-            self.line.track(
-                self.gbs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.gbs_part, num_turns=self.order)
 
             self.gbs_part_norm.phys_to_norm(self.gbs_part)
 
@@ -406,9 +399,7 @@ class FPFinder:
             self.hs_part_norm.py_norm = copy.deepcopy(point[3])
             self.hs_part = self.hs_part_norm.norm_to_phys(self.hs_part)
 
-            self.line.track(
-                self.hs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.hs_part, num_turns=self.order)
 
             self.hs_part_norm.phys_to_norm(self.hs_part)
 
@@ -435,9 +426,7 @@ class FPFinder:
             self.grid_part_norm.py_norm = copy.deepcopy(point[3])
             self.grid_part = self.grid_part_norm.norm_to_phys(self.grid_part)
 
-            self.line.track(
-                self.grid_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.grid_part, num_turns=self.order)
 
             self.grid_part_norm.phys_to_norm(self.grid_part)
 
@@ -509,9 +498,7 @@ class FPFinder:
             self.hs_part_norm.pzeta_norm = copy.deepcopy(point[5])
             self.hs_part = self.hs_part_norm.norm_to_phys(self.hs_part)
 
-            self.line.track(
-                self.hs_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.hs_part, num_turns=self.order)
 
             self.hs_part_norm.phys_to_norm(self.hs_part)
 
@@ -539,9 +526,7 @@ class FPFinder:
             self.grid_part_norm.pzeta_norm = copy.deepcopy(point[5])
             self.grid_part = self.grid_part_norm.norm_to_phys(self.grid_part)
 
-            self.line.track(
-                self.grid_part, num_turns=self.order, freeze_longitudinal=True
-            )
+            self.line.track(self.grid_part, num_turns=self.order)
 
             self.grid_part_norm.phys_to_norm(self.grid_part)
 
@@ -1256,11 +1241,20 @@ n-polygon."
                 "zeta": 0.0,
                 "ptau": 0.0,
             }
-        self.twiss = self.line.twiss(
-            continue_on_closed_orbit_error=False,
-            delta0=self.delta0,
-            co_guess=co_guess,
-        )
+        if self.line.enable_time_dependent_vars:
+            self.line.enable_time_dependent_vars = False
+            self.twiss = self.line.twiss(
+                continue_on_closed_orbit_error=False,
+                delta0=self.delta0,
+                co_guess=co_guess,
+            )
+            self.line.enable_time_dependent_vars = True
+        else:
+            self.twiss = self.line.twiss(
+                continue_on_closed_orbit_error=False,
+                delta0=self.delta0,
+                co_guess=co_guess,
+            )
         self.gbs_part = self.twiss.particle_on_co.copy()
         self.gbs_part_norm = NormedParticles(
             self.twiss,
@@ -1440,4 +1434,13 @@ accuracy may not have been achieved!"
         self.line = line.copy()
         self.line.discard_tracker()
         self.line.build_tracker(_context=xo.ContextCpu())
-        self.twiss = line.twiss(continue_on_closed_orbit_error=False, co_guess=co_guess)
+        if line.enable_time_dependent_vars:
+            line.enable_time_dependent_vars = False
+            self.twiss = line.twiss(
+                continue_on_closed_orbit_error=False, co_guess=co_guess
+            )
+            line.enable_time_dependent_vars = True
+        else:
+            self.twiss = line.twiss(
+                continue_on_closed_orbit_error=False, co_guess=co_guess
+            )
