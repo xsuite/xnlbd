@@ -134,6 +134,7 @@ def _get_H_orbit_points(
         "ptau": line.record_last_track.ptau,
         "pzeta": line.record_last_track.pzeta,
         "delta": line.record_last_track.delta,
+        "p0c": line.record_last_track.p0c,
         "at_element": line.record_last_track.at_element,
         "particle_id": line.record_last_track.particle_id,
     }
@@ -336,6 +337,7 @@ def _get_V_orbit_points(
         "ptau": line.record_last_track.ptau,
         "pzeta": line.record_last_track.pzeta,
         "delta": line.record_last_track.delta,
+        "p0c": line.record_last_track.p0c,
         "at_element": line.record_last_track.at_element,
         "particle_id": line.record_last_track.particle_id,
     }
@@ -527,6 +529,7 @@ def _get_L_orbit_points(
         "ptau": line.record_last_track.ptau,
         "pzeta": line.record_last_track.pzeta,
         "delta": line.record_last_track.delta,
+        "p0c": line.record_last_track.p0c,
         "at_element": line.record_last_track.at_element,
         "particle_id": line.record_last_track.particle_id,
     }
