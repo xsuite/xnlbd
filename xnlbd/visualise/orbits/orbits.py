@@ -176,10 +176,20 @@ def _get_H_orbit_points(
         "H_orbit_points": {
             "x": orbit_points["x"],
             "px": orbit_points["px"],
+            "y": orbit_points["y"],
+            "py": orbit_points["py"],
+            "zeta": orbit_points["zeta"],
+            "pzeta": orbit_points["pzeta"],
+            "delta": orbit_points["delta"],
+            "p0c": orbit_points["p0c"]
         },
         "H_orbit_points_norm": {
             "x_norm": orbit_points_norm["x_norm"],
             "px_norm": orbit_points_norm["px_norm"],
+            "y_norm": orbit_points_norm["y_norm"],
+            "py_norm": orbit_points_norm["py_norm"],
+            "zeta_norm": orbit_points_norm["zeta_norm"],
+            "pzeta_norm": orbit_points_norm["pzeta_norm"]
         },
     }
     lost_part_idx = np.where(state < 1)[0]
@@ -187,8 +197,18 @@ def _get_H_orbit_points(
         lost_turn = at_turn[i]
         result["H_orbit_points"]["x"][i, lost_turn:] = np.nan
         result["H_orbit_points"]["px"][i, lost_turn:] = np.nan
+        result["H_orbit_points"]["y"][i, lost_turn:] = np.nan
+        result["H_orbit_points"]["py"][i, lost_turn:] = np.nan
+        result["H_orbit_points"]["zeta"][i, lost_turn:] = np.nan
+        result["H_orbit_points"]["pzeta"][i, lost_turn:] = np.nan
+        result["H_orbit_points"]["delta"][i, lost_turn:] = np.nan
+        result["H_orbit_points"]["p0c"][i, lost_turn:] = np.nan
         result["H_orbit_points_norm"]["x_norm"][i, lost_turn:] = np.nan
         result["H_orbit_points_norm"]["px_norm"][i, lost_turn:] = np.nan
+        result["H_orbit_points_norm"]["y_norm"][i, lost_turn:] = np.nan
+        result["H_orbit_points_norm"]["py_norm"][i, lost_turn:] = np.nan
+        result["H_orbit_points_norm"]["zeta_norm"][i, lost_turn:] = np.nan
+        result["H_orbit_points_norm"]["pzeta_norm"][i, lost_turn:] = np.nan
 
     return result
 
@@ -356,21 +376,41 @@ def _get_V_orbit_points(
 
     result = {
         "V_orbit_points": {
+            "x": orbit_points["x"],
+            "px": orbit_points["px"],
             "y": orbit_points["y"],
             "py": orbit_points["py"],
+            "zeta": orbit_points["zeta"],
+            "pzeta": orbit_points["pzeta"],
+            "delta": orbit_points["delta"],
+            "p0c": orbit_points["p0c"]
         },
         "V_orbit_points_norm": {
+            "x_norm": orbit_points_norm["x_norm"],
+            "px_norm": orbit_points_norm["px_norm"],
             "y_norm": orbit_points_norm["y_norm"],
             "py_norm": orbit_points_norm["py_norm"],
+            "zeta_norm": orbit_points_norm["zeta_norm"],
+            "pzeta_norm": orbit_points_norm["pzeta_norm"]
         },
     }
     lost_part_idx = np.where(state < 1)[0]
     for i in lost_part_idx:
         lost_turn = at_turn[i]
+        result["V_orbit_points"]["x"][i, lost_turn:] = np.nan
+        result["V_orbit_points"]["px"][i, lost_turn:] = np.nan
         result["V_orbit_points"]["y"][i, lost_turn:] = np.nan
         result["V_orbit_points"]["py"][i, lost_turn:] = np.nan
+        result["V_orbit_points"]["zeta"][i, lost_turn:] = np.nan
+        result["V_orbit_points"]["pzeta"][i, lost_turn:] = np.nan
+        result["V_orbit_points"]["delta"][i, lost_turn:] = np.nan
+        result["V_orbit_points"]["p0c"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["x_norm"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["px_norm"][i, lost_turn:] = np.nan
         result["V_orbit_points_norm"]["y_norm"][i, lost_turn:] = np.nan
         result["V_orbit_points_norm"]["py_norm"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["zeta_norm"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["pzeta_norm"][i, lost_turn:] = np.nan
 
     return result
 
@@ -527,12 +567,21 @@ def _get_L_orbit_points(
 
     result = {
         "L_orbit_points": {
+            "x": orbit_points["x"],
+            "px": orbit_points["px"],
+            "y": orbit_points["y"],
+            "py": orbit_points["py"],
             "zeta": orbit_points["zeta"],
             "pzeta": orbit_points["pzeta"],
             "ptau": orbit_points["ptau"],
             "delta": orbit_points["delta"],
+            "p0c": orbit_points["p0c"]
         },
         "L_orbit_points_norm": {
+            "x_norm": orbit_points_norm["x_norm"],
+            "px_norm": orbit_points_norm["px_norm"],
+            "y_norm": orbit_points_norm["y_norm"],
+            "py_norm": orbit_points_norm["py_norm"],
             "zeta_norm": orbit_points_norm["zeta_norm"],
             "pzeta_norm": orbit_points_norm["pzeta_norm"],
         },
@@ -540,10 +589,19 @@ def _get_L_orbit_points(
     lost_part_idx = np.where(state < 1)[0]
     for i in lost_part_idx:
         lost_turn = at_turn[i]
+        result["L_orbit_points"]["x"][i, lost_turn:] = np.nan
+        result["L_orbit_points"]["px"][i, lost_turn:] = np.nan
+        result["L_orbit_points"]["y"][i, lost_turn:] = np.nan
+        result["L_orbit_points"]["py"][i, lost_turn:] = np.nan
         result["L_orbit_points"]["zeta"][i, lost_turn:] = np.nan
         result["L_orbit_points"]["pzeta"][i, lost_turn:] = np.nan
         result["L_orbit_points"]["ptau"][i, lost_turn:] = np.nan
         result["L_orbit_points"]["delta"][i, lost_turn:] = np.nan
+        result["L_orbit_points"]["p0c"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["x_norm"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["px_norm"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["y_norm"][i, lost_turn:] = np.nan
+        result["V_orbit_points_norm"]["py_norm"][i, lost_turn:] = np.nan
         result["L_orbit_points_norm"]["zeta_norm"][i, lost_turn:] = np.nan
         result["L_orbit_points_norm"]["pzeta_norm"][i, lost_turn:] = np.nan
 
