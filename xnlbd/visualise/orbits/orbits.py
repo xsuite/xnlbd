@@ -23,6 +23,7 @@ def _get_H_orbit_points(
     part_norm,
     num_pts: int,
     num_turns: int = 2048,
+    with_progress: bool = False,
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     Function to track particles and record their coordinates every turn to
@@ -45,6 +46,8 @@ def _get_H_orbit_points(
         - num_turns: integer, number of turns to track for, default `2048`;
           note that it has to be large enough to assess the stability of
           initial conditions and to paint the phase space
+        - with_progress: True if progress should be displayed, otherwise
+          False, default `False`
 
     Output:
         - dictionary with the following structure:
@@ -119,6 +122,7 @@ def _get_H_orbit_points(
         part,
         num_turns=num_turns,
         turn_by_turn_monitor=True,
+        with_progress=with_progress,
     )
     part.sort(interleave_lost_particles=True)
     state = part.state
@@ -182,7 +186,7 @@ def _get_H_orbit_points(
             "zeta": orbit_points["zeta"],
             "pzeta": orbit_points["pzeta"],
             "delta": orbit_points["delta"],
-            "p0c": orbit_points["p0c"]
+            "p0c": orbit_points["p0c"],
         },
         "H_orbit_points_norm": {
             "x_norm": orbit_points_norm["x_norm"],
@@ -190,7 +194,7 @@ def _get_H_orbit_points(
             "y_norm": orbit_points_norm["y_norm"],
             "py_norm": orbit_points_norm["py_norm"],
             "zeta_norm": orbit_points_norm["zeta_norm"],
-            "pzeta_norm": orbit_points_norm["pzeta_norm"]
+            "pzeta_norm": orbit_points_norm["pzeta_norm"],
         },
     }
     lost_part_idx = np.where(state < 1)[0]
@@ -226,6 +230,7 @@ def _get_V_orbit_points(
     part_norm,
     num_pts: int,
     num_turns: int = 2048,
+    with_progress: bool = False,
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     Function to track particles and record their coordinates every turn to
@@ -248,6 +253,8 @@ def _get_V_orbit_points(
         - num_turns: integer, number of turns to track for, default `2048`;
           note that it has to be large enough to assess the stability of
           initial conditions and to paint the phase space
+        - with_progress: True if progress should be displayed, otherwise
+          False, default `False`
 
     Output:
         - dictionary with the following structure:
@@ -322,6 +329,7 @@ def _get_V_orbit_points(
         part,
         num_turns=num_turns,
         turn_by_turn_monitor=True,
+        with_progress=with_progress,
     )
     part.sort(interleave_lost_particles=True)
     state = part.state
@@ -385,7 +393,7 @@ def _get_V_orbit_points(
             "zeta": orbit_points["zeta"],
             "pzeta": orbit_points["pzeta"],
             "delta": orbit_points["delta"],
-            "p0c": orbit_points["p0c"]
+            "p0c": orbit_points["p0c"],
         },
         "V_orbit_points_norm": {
             "x_norm": orbit_points_norm["x_norm"],
@@ -393,7 +401,7 @@ def _get_V_orbit_points(
             "y_norm": orbit_points_norm["y_norm"],
             "py_norm": orbit_points_norm["py_norm"],
             "zeta_norm": orbit_points_norm["zeta_norm"],
-            "pzeta_norm": orbit_points_norm["pzeta_norm"]
+            "pzeta_norm": orbit_points_norm["pzeta_norm"],
         },
     }
     lost_part_idx = np.where(state < 1)[0]
@@ -465,6 +473,7 @@ def _get_L_orbit_points(
     part,
     num_pts: int,
     num_turns: int = 2048,
+    with_progress: bool = False,
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     Function to track particles and record their coordinates every turn to
@@ -484,6 +493,8 @@ def _get_L_orbit_points(
         - num_turns: integer, number of turns to track for, default `2048`;
           note that it has to be large enough to assess the stability of
           initial conditions and to paint the phase space
+        - with_progress: True if progress should be displayed, otherwise
+          False, default `False`
 
     Output:
         - dictionary with the following structure:
@@ -514,6 +525,7 @@ def _get_L_orbit_points(
         part,
         num_turns=num_turns,
         turn_by_turn_monitor=True,
+        with_progress=with_progress,
     )
     part.sort(interleave_lost_particles=True)
     state = part.state
@@ -578,7 +590,7 @@ def _get_L_orbit_points(
             "pzeta": orbit_points["pzeta"],
             "ptau": orbit_points["ptau"],
             "delta": orbit_points["delta"],
-            "p0c": orbit_points["p0c"]
+            "p0c": orbit_points["p0c"],
         },
         "L_orbit_points_norm": {
             "x_norm": orbit_points_norm["x_norm"],
@@ -623,6 +635,7 @@ def get_orbit_points(
     nemitt_y: float = 1e-6,
     nemitt_z: float = 1,
     xcoll_scattering: bool = False,
+    with_progress: bool = False,
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     Function to track particles and record their coordinates every turn to
@@ -650,6 +663,8 @@ def get_orbit_points(
         - nemitt_y: normalised emittance in vertical plane, default `1e-6`
         - nemitt_z: normalised emittance in longitudinal plane, default `1`
         - xcoll_scattering: True if scattering should be enabled, otherwise
+          False, default `False`
+        - with_progress: True if progress should be displayed, otherwise
           False, default `False`
 
     Output:
@@ -785,7 +800,7 @@ def get_orbit_points(
     )
 
     if xcoll_scattering:
-        xc.assign_optics_to_collimators(line=line_int)
+        line_int.collimators.assign_optics()
         line_int.scattering.enable()
     if time_dep_vars:
         line_int.enable_time_dependent_vars = True
@@ -820,6 +835,7 @@ def get_orbit_points(
             part_norm,
             num_pts,
             num_turns,
+            with_progress,
         )
     if "V" in planes:
         part = xt.Particles(
@@ -848,6 +864,7 @@ def get_orbit_points(
             part_norm,
             num_pts,
             num_turns,
+            with_progress,
         )
     if "L" in planes:
         part = xt.Particles(
@@ -871,6 +888,7 @@ def get_orbit_points(
             part,
             num_pts,
             num_turns,
+            with_progress,
         )
 
     orbits = orbits_H | orbits_V | orbits_L
