@@ -54,6 +54,7 @@ dev = [
     "isort",
     "pandas-stubs",
     "types-tqdm",
+    "sympy",
 ]
 
 [project.urls]
