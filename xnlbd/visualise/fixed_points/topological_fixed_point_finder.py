@@ -12,7 +12,7 @@ from xtrack.particles.particles import (  # type: ignore[import-untyped, import-
 )
 from xtrack.twiss import TwissTable  # type: ignore[import-untyped, import-not-found]
 
-from xnlbd.tools import NormedParticles
+from ...tools.normed_particles import NormedParticles
 
 
 class FPFinder:
