@@ -8,7 +8,7 @@ import xtrack as xt  # type: ignore[import-untyped, import-not-found]
 from xtrack import Line  # type: ignore[import-untyped, import-not-found]
 from xtrack.twiss import TwissTable  # type: ignore[import-untyped, import-not-found]
 
-from xnlbd.tools import NormedParticles
+from ...tools.normed_particles import NormedParticles
 
 
 def _get_H_orbit_points(
