@@ -117,6 +117,10 @@ def _get_H_orbit_points(
     sort_idx = np.argsort(x_norm**2 + px_norm**2)
     part_norm.x_norm = x_norm[sort_idx]
     part_norm.px_norm = px_norm[sort_idx]
+    part_norm.y_norm = part_on_co_norm.y_norm
+    part_norm.py_norm = part_on_co_norm.py_norm
+    part_norm.zeta_norm = part_on_co_norm.zeta_norm
+    part_norm.pzeta_norm = part_on_co_norm.pzeta_norm
     part = part_norm.norm_to_phys(part_copy)
     line.track(
         part,
@@ -324,6 +328,10 @@ def _get_V_orbit_points(
     sort_idx = np.argsort(y_norm**2 + py_norm**2)
     part_norm.y_norm = y_norm[sort_idx]
     part_norm.py_norm = py_norm[sort_idx]
+    part_norm.x_norm = part_on_co_norm.x_norm
+    part_norm.px_norm = part_on_co_norm.px_norm
+    part_norm.zeta_norm = part_on_co_norm.zeta_norm
+    part_norm.pzeta_norm = part_on_co_norm.pzeta_norm
     part = part_norm.norm_to_phys(part_copy)
     line.track(
         part,
@@ -445,7 +453,7 @@ def _max_bucket_height(line: Line, twiss: TwissTable) -> float:
     cavities = line.get_elements_of_type(xt.Cavity)[1]
     freq = np.asarray([round(line[cav].frequency, 9) for cav in cavities])
     phi = np.array([line[cav].lag for cav in cavities]) * np.pi / 180.0
-    V = np.array([line[cav].voltage for cav in cavities])
+    V = np.sum(np.array([line[cav].voltage for cav in cavities]))
     L = line.get_length()
 
     h = freq * L / beta0 / sc.c
