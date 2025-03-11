@@ -1,1 +1,1 @@
-from . import chaos, rdt
+from . import chaos, normal_forms, rdt
