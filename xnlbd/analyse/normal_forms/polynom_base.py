@@ -63,8 +63,8 @@ class Term:
         coeff_re_atol = float(f"1e{np.min([self_coeff_re_o, other_coeff_re_o])-10:.0f}")
         coeff_im_atol = float(f"1e{np.min([self_coeff_im_o, other_coeff_im_o])-10:.0f}")
 
-        coeff_re_eq = np.isclose(self.coeff.real, other.coeff.real, atol=coeff_re_atol)
-        coeff_im_eq = np.isclose(self.coeff.imag, other.coeff.imag, atol=coeff_im_atol)
+        coeff_re_eq = np.isclose(self.coeff.real, other.coeff.real, rtol=1e-14, atol=coeff_re_atol)
+        coeff_im_eq = np.isclose(self.coeff.imag, other.coeff.imag, rtol=1e-14, atol=coeff_im_atol)
         x_exp_eq = np.isclose(self.x_exp, other.x_exp, rtol=1e-14, atol=1e-16)
         px_exp_eq = np.isclose(self.px_exp, other.px_exp, rtol=1e-14, atol=1e-16)
         y_exp_eq = np.isclose(self.y_exp, other.y_exp, rtol=1e-14, atol=1e-16)
@@ -286,7 +286,7 @@ class Polynom:
               after substitution
         """
 
-        sum = 0.0
+        sum = 0.0 + 0j
         for term in self.terms:
             sum += (
                 term.coeff
@@ -415,6 +415,25 @@ class Polynom:
                 new_poly = Polynom.product_Polynoms(new_poly, poly, max_order)
 
             return new_poly
+        
+    def get_max_order(self) -> int:
+        """
+        Function that returns the maximum order of the polynomial.
+
+        Input:
+            - 
+
+        Output:
+            - integer representing the maximum order of the polynomial
+        """
+        
+        max_x_order = 0
+        for term in self.terms:
+            curr_order = (term.x_exp + term.px_exp + term.y_exp + term.py_exp)
+            if curr_order > max_x_order:
+                max_x_order = curr_order
+
+        return max_x_order
 
 
 @dataclass
@@ -470,6 +489,32 @@ class Map:
             self.y_poly.substitute(x_val, px_val, y_val, py_val),
             self.py_poly.substitute(x_val, px_val, y_val, py_val),
         )
+    
+    def get_max_order(self) -> int:
+        """
+        Function that returns the maximum map order.
+
+        Input:
+            - x_val: array-like of initial values of the first
+              coordinate
+            - px_val: array-like of initial values of the second
+              coordinate
+            - y_val: array-like of initial values of the third
+              coordinate
+            - py_val: array-like of initial values of the fourth
+              coordinate
+
+        Output:
+            - array-like of the numerical value of the polynomial
+              after substitution
+        """
+        
+        max_x_order = self.x_poly.get_max_order()
+        max_px_order = self.px_poly.get_max_order()
+        max_y_order = self.y_poly.get_max_order()
+        max_py_order = self.py_poly.get_max_order()
+
+        return np.max([max_x_order, max_px_order, max_y_order, max_py_order])
 
     def __str__(self) -> str:
         string = (
