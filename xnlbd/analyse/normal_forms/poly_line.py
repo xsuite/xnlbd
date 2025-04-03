@@ -69,9 +69,21 @@ class PolyLine4D:
     one-turn maps and normal forms.
     """
 
+    linear_poly_elements = (
+        PolyIdentity4D,
+        PolyReferenceEnergyIncrease4D,
+        PolyMarker4D,
+        PolyDrift4D, 
+        PolyCavity4D,
+        PolyZetaShift4D,
+        # PolySimpleThinBend4D,
+        PolySimpleThinQuadrupole4D,
+        PolyDipoleEdge4D,
+    )
+
     def __init__(
         self,
-        line: Line,
+        line_in: Line,
         part: Particles,
         max_ele_order: int,
         max_map_order: int,
@@ -83,7 +95,7 @@ class PolyLine4D:
         Initialiser for PolyLine4D class.
 
         Input:
-            - line: Line object constructed with xtrack that represents the
+            - line_in: Line object constructed with xtrack that represents the
               accelerator lattice
             - part: Particles object constructed by xtrack that represents the
               reference particle for the one-turn map and normal form
@@ -103,6 +115,22 @@ class PolyLine4D:
         Output:
             -
         """
+        line = line_in.copy()
+
+        try:
+            self.exact_drifts = int(line.config.XTRACK_USE_EXACT_DRIFTS)
+        except AttributeError:
+            self.exact_drifts = 0
+
+        unique_thick_ele_types = tuple(set(type(ele) for ele in line.elements if ele.isthick))
+        if len(unique_thick_ele_types) != 1: # line contains thick elements other than drifts
+            print("Thick elements are not supported for normal forms, \\ "
+                "they will be sliced and replaced with thin equivalents! \\"
+                "Tunes, chromaticities and other features of the machine \\"
+                "(e.g. closed orbit bumps) may change. If these are of \\"
+                "interest, please provide a line containing thin elements \\"
+                "only.")
+            line.slice_thick_elements(slicing_strategies=[xt.Strategy(slicing=xt.Uniform(1))])
 
         self.poly_elements: list[PolyElement4D] = []
         self.one_turn_map: Map | None = None
@@ -115,34 +143,49 @@ class PolyLine4D:
         self.max_map_order: int = max_map_order
         self.max_ele_order: int = max_ele_order
 
-        tw = line.twiss(continue_on_closed_orbit_error=False)
-        self.W_matrix: np.ndarray = tw.W_matrix[0].flatten()
-        self.W_matrix_inv: np.ndarray = np.linalg.inv(tw.W_matrix[0]).flatten()
-        self.twiss_data: np.ndarray = np.asarray(
-            [
-                nemitt_x,
-                nemitt_y,
-                tw.x[0],
-                tw.px[0],
-                tw.y[0],
-                tw.py[0],
-                tw.zeta[0],
-                tw.ptau[0],
-                nemitt_z,
-            ]
-        )
-        self.part: Particles = part
-        self.part_norm: NormedParticles = NormedParticles(
-            tw, nemitt_x=nemitt_x, nemitt_y=nemitt_y, part=part
-        )
+        self.tw = line.twiss(continue_on_closed_orbit_error=False, delta0=part.delta[0])
+        self.W_matrix: list[np.ndarray] = []
+        self.W_matrix_inv: list[np.ndarray] = []
+        self.parts: list[Particles] = []
+        self.parts_norm: list[NormedParticles] = []
+        for i in range(len(line.element_names)):
+            self.W_matrix.append(self.tw.W_matrix[i].flatten())
+            self.W_matrix_inv.append(np.linalg.inv(self.tw.W_matrix[i]).flatten())
+            part0 = xt.Particles(
+                x=self.tw.x[i], 
+                px=self.tw.px[i], 
+                y=self.tw.y[i], 
+                py=self.tw.py[i], 
+                zeta=self.tw.zeta[i], 
+                delta=self.tw.delta[i], 
+                p0c=self.tw.particle_on_co.p0c, 
+                mass0=self.tw.particle_on_co.mass0, 
+                q0=self.tw.particle_on_co.q0
+            )
+            self.parts.append(part0)
+            part_norm0 = NormedParticles(
+                self.tw, nemitt_x=nemitt_x, nemitt_y=nemitt_y, part=part0
+            )
+            part_norm0.phys_to_norm(part0)
+            self.parts_norm.append(part_norm0)
+
         self.beta0: float = part.beta0
         self.gamma0: float = part.gamma0
+        self.nemitt_x = nemitt_x
+        self.nemitt_y = nemitt_y
+        self.nemitt_z = nemitt_z
+        self.gemitt_x = self.nemitt_x / self.beta0 / self.gamma0
+        self.gemitt_y = self.nemitt_y / self.beta0 / self.gamma0
+        self.gemitt_z = self.nemitt_z / self.beta0 / self.gamma0
 
         element_names = line.element_names
-        element_refs = line.element_refs
+        elements = line.elements
 
-        for name in element_names:
-            ele = element_refs[name]._get_value()
+        for i, name in enumerate(element_names):
+            try:
+                ele = elements[i].get_equivalent_element()
+            except AttributeError:
+                ele = elements[i]
 
             match ele:
                 case LimitRect():
@@ -164,7 +207,7 @@ class PolyLine4D:
                 case Drift():
                     self.poly_elements.append(
                         PolyDrift4D(
-                            part=part, length=element_refs[name].length._get_value()
+                            part=part, length=ele.length, exact=self.exact_drifts, max_order=max_ele_order
                         )
                     )
                 case Cavity():
@@ -172,8 +215,8 @@ class PolyLine4D:
                 case XYShift():
                     self.poly_elements.append(PolyXYShift4D())
                 case SRotation():
-                    sin_z = element_refs[name].sin_z._get_value()
-                    cos_z = element_refs[name].cos_z._get_value()
+                    sin_z = ele.sin_z
+                    cos_z = ele.cos_z
 
                     self.poly_elements.append(
                         PolySRotation4D(
@@ -184,182 +227,89 @@ class PolyLine4D:
                 case ZetaShift():
                     self.poly_elements.append(PolyZetaShift4D())
                 case Multipole():
-                    knl = []
-                    for i in range(len(element_refs[name].knl._get_value())):
-                        knl.append(element_refs[name].knl[i]._get_value())
-                    ksl = []
-                    for i in range(len(element_refs[name].ksl._get_value())):
-                        ksl.append(element_refs[name].ksl[i]._get_value())
-                    hxl = element_refs[name].hxl._get_value()
-
                     self.poly_elements.append(
                         PolyMultipole4D(
                             part=part,
-                            order=element_refs[name]._order._get_value(),
-                            inv_factorial_order=element_refs[
-                                name
-                            ].inv_factorial_order._get_value(),
-                            knl=knl,
-                            ksl=ksl,
-                            hxl=hxl,
-                            length=element_refs[name].length._get_value(),
+                            order=ele._order,
+                            inv_factorial_order=ele.inv_factorial_order,
+                            knl=ele.knl,
+                            ksl=ele.ksl,
+                            hxl=ele.hxl,
+                            length=ele.length,
                             max_order=max_ele_order,
                         )
                     )
                 case SimpleThinQuadrupole():
-                    knl = []
-                    for i in range(len(element_refs[name].knl._get_value())):
-                        knl.append(element_refs[name].knl[i]._get_value())
-
                     self.poly_elements.append(
-                        PolySimpleThinQuadrupole4D(part=part, knl=knl)
+                        PolySimpleThinQuadrupole4D(part=part, knl=ele.knl)
                     )
                 case DipoleEdge():
-                    r21 = element_refs[name]._r21._get_value()
-                    r43 = element_refs[name]._r43._get_value()
+                    r21 = ele._r21
+                    r43 = ele._r43
 
                     self.poly_elements.append(
                         PolyDipoleEdge4D(
                             part=part,
                             r21=r21,
                             r43=r43,
-                            model=element_refs[name]._model._get_value(),
+                            model=ele._model,
                         )
                     )
                 case Sextupole():
-                    knl = []
-                    for i in range(len(element_refs[name].knl._get_value())):
-                        knl.append(element_refs[name].knl[i]._get_value())
-                    ksl = []
-                    for i in range(len(element_refs[name].ksl._get_value())):
-                        ksl.append(element_refs[name].ksl[i]._get_value())
-
                     self.poly_elements.append(
                         PolySextupole4D(
                             part=part,
-                            k2=element_refs[name].k2._get_value(),
-                            k2s=element_refs[name].k2s._get_value(),
-                            length=element_refs[name].length._get_value(),
-                            order=element_refs[name]._order._get_value(),
-                            inv_factorial_order=element_refs[
-                                name
-                            ].inv_factorial_order._get_value(),
-                            knl=knl,
-                            ksl=ksl,
-                            edge_entry_active=element_refs[
-                                name
-                            ].edge_entry_active._get_value(),
-                            edge_exit_active=element_refs[
-                                name
-                            ].edge_exit_active._get_value(),
+                            k2=ele.k2,
+                            k2s=ele.k2s,
+                            length=ele.length,
+                            order=ele._order,
+                            inv_factorial_order=ele.inv_factorial_order,
+                            knl=ele.knl,
+                            ksl=ele.ksl,
+                            edge_entry_active=ele.edge_entry_active,
+                            edge_exit_active=ele.edge_exit_active,
                             max_order=max_ele_order,
+                            exact=self.exact_drifts
                         )
                     )
                 case Octupole():
-                    knl = []
-                    for i in range(len(element_refs[name].knl._get_value())):
-                        knl.append(element_refs[name].knl[i]._get_value())
-                    ksl = []
-                    for i in range(len(element_refs[name].ksl._get_value())):
-                        ksl.append(element_refs[name].ksl[i]._get_value())
-
                     self.poly_elements.append(
                         PolyOctupole4D(
                             part=part,
-                            k3=element_refs[name].k3._get_value(),
-                            k3s=element_refs[name].k3s._get_value(),
-                            length=element_refs[name].length._get_value(),
-                            order=element_refs[name]._order._get_value(),
-                            inv_factorial_order=element_refs[
-                                name
-                            ].inv_factorial_order._get_value(),
-                            knl=knl,
-                            ksl=ksl,
-                            edge_entry_active=element_refs[
-                                name
-                            ].edge_entry_active._get_value(),
-                            edge_exit_active=element_refs[
-                                name
-                            ].edge_exit_active._get_value(),
+                            k3=ele.k3,
+                            k3s=ele.k3s,
+                            length=ele.length,
+                            order=ele._order,
+                            inv_factorial_order=ele.inv_factorial_order,
+                            knl=ele.knl,
+                            ksl=ele.ksl,
+                            edge_entry_active=ele.edge_entry_active,
+                            edge_exit_active=ele.edge_exit_active,
                             max_order=max_ele_order,
+                            exact=self.exact_drifts
                         )
                     )
                 case Henonmap():
-                    twiss_params = []
-                    for i in range(len(element_refs[name].twiss_params._get_value())):
-                        twiss_params.append(
-                            element_refs[name].twiss_params[i]._get_value()
-                        )
-                    fx_coeffs = []
-                    for i in range(len(element_refs[name].fx_coeffs._get_value())):
-                        fx_coeffs.append(element_refs[name].fx_coeffs[i]._get_value())
-                    fx_x_exps = []
-                    for i in range(len(element_refs[name].fx_x_exps._get_value())):
-                        fx_x_exps.append(element_refs[name].fx_x_exps[i]._get_value())
-                    fx_y_exps = []
-                    for i in range(len(element_refs[name].fx_y_exps._get_value())):
-                        fx_y_exps.append(element_refs[name].fx_y_exps[i]._get_value())
-                    fy_coeffs = []
-                    for i in range(len(element_refs[name].fy_coeffs._get_value())):
-                        fy_coeffs.append(element_refs[name].fy_coeffs[i]._get_value())
-                    fy_x_exps = []
-                    for i in range(len(element_refs[name].fy_x_exps._get_value())):
-                        fy_x_exps.append(element_refs[name].fy_x_exps[i]._get_value())
-                    fy_y_exps = []
-                    for i in range(len(element_refs[name].fy_y_exps._get_value())):
-                        fy_y_exps.append(element_refs[name].fy_y_exps[i]._get_value())
-
                     self.poly_elements.append(
-                        # PolyHenonmap4D(
-                        #     part=part,
-                        #     cos_omega_x=element_refs[name].cos_omega_x._get_value(),
-                        #     sin_omega_x=element_refs[name].sin_omega_x._get_value(),
-                        #     cos_omega_y=element_refs[name].cos_omega_y._get_value(),
-                        #     sin_omega_y=element_refs[name].sin_omega_y._get_value(),
-                        #     domegax=element_refs[name].domegax._get_value(),
-                        #     domegay=element_refs[name].domegay._get_value(),
-                        #     n_turns=element_refs[name].n_turns._get_value(),
-                        #     twiss_params=twiss_params,
-                        #     dx=element_refs[name].dx._get_value(),
-                        #     ddx=element_refs[name].ddx._get_value(),
-                        #     fx_coeffs=fx_coeffs,
-                        #     fx_x_exps=fx_x_exps,
-                        #     fx_y_exps=fx_y_exps,
-                        #     fy_coeffs=fy_coeffs,
-                        #     fy_x_exps=fy_x_exps,
-                        #     fy_y_exps=fy_y_exps,
-                        #     norm=element_refs[name].norm._get_value(),
-                        #     max_order=max_ele_order
-                        # )
                         PolyHenonmap4D(
                             part=part,
-                            cos_omega_x=line.element_refs[
-                                name
-                            ].cos_omega_x._get_value(),
-                            sin_omega_x=line.element_refs[
-                                name
-                            ].sin_omega_x._get_value(),
-                            cos_omega_y=line.element_refs[
-                                name
-                            ].cos_omega_y._get_value(),
-                            sin_omega_y=line.element_refs[
-                                name
-                            ].sin_omega_y._get_value(),
-                            domegax=line.element_refs[name].domegax._get_value(),
-                            domegay=line.element_refs[name].domegay._get_value(),
-                            n_turns=line.element_refs[name].n_turns._get_value(),
-                            twiss_params=line.element_refs[
-                                name
-                            ].twiss_params._get_value(),
-                            dx=line.element_refs[name].dx._get_value(),
-                            ddx=line.element_refs[name].ddx._get_value(),
-                            fx_coeffs=line.element_refs[name].fx_coeffs._get_value(),
-                            fx_x_exps=line.element_refs[name].fx_x_exps._get_value(),
-                            fx_y_exps=line.element_refs[name].fx_y_exps._get_value(),
-                            fy_coeffs=line.element_refs[name].fy_coeffs._get_value(),
-                            fy_x_exps=line.element_refs[name].fy_x_exps._get_value(),
-                            fy_y_exps=line.element_refs[name].fy_y_exps._get_value(),
-                            norm=line.element_refs[name].norm._get_value(),
+                            cos_omega_x=ele.cos_omega_x,
+                            sin_omega_x=ele.sin_omega_x,
+                            cos_omega_y=ele.cos_omega_y,
+                            sin_omega_y=ele.sin_omega_y,
+                            domegax=ele.domegax,
+                            domegay=ele.domegay,
+                            n_turns=ele.n_turns,
+                            twiss_params=ele.twiss_params,
+                            dx=ele.dx,
+                            ddx=ele.ddx,
+                            fx_coeffs=ele.fx_coeffs,
+                            fx_x_exps=ele.fx_x_exps,
+                            fx_y_exps=ele.fx_y_exps,
+                            fy_coeffs=ele.fy_coeffs,
+                            fy_x_exps=ele.fy_x_exps,
+                            fy_y_exps=ele.fy_y_exps,
+                            norm=ele.norm,
                             max_order=max_ele_order,
                         )
                     )
@@ -381,10 +331,11 @@ class PolyLine4D:
 
         self.max_map_order = max_map_order
 
-    def calculate_one_turn_map(self) -> None:
+    def _calculate_one_turn_map_real(self) -> None:
         """
         Function to calculate the one-turn map by composing the individual
-        polynomial element maps and truncating at the given order.
+        polynomial element maps and truncating at the given order. The map 
+        calculated will be in real physical space.
 
         Input:
             -
@@ -407,103 +358,130 @@ class PolyLine4D:
 
         self.one_turn_map_real = one_turn_map
 
-        gemitt_x = self.twiss_data[0] / self.beta0 / self.gamma0
-        gemitt_y = self.twiss_data[1] / self.beta0 / self.gamma0
-        gemitt_z = self.twiss_data[8] / self.beta0 / self.gamma0
+    def _get_coords_in_norm_at_ele(self, n: int) -> tuple[Polynom, Polynom, Polynom, Polynom]:
+        """
+        Function to compute the polynomial representations of physical space 
+        coordinates as a function of normalised coordinates at a given element.
 
+        Input:
+            - n: integer, index of the element
+
+        Output:
+            - tuple of Polynom objects representing (x, px, y, py) in terms of 
+              normalised equivalents
+        """
+        
         x = Polynom.sum_Polynoms(
             Polynom(
                 terms=[
-                    Term(coeff=self.W_matrix[0] * np.sqrt(gemitt_x), x_exp=1),
-                    Term(coeff=self.W_matrix[1] * np.sqrt(gemitt_x), px_exp=1),
-                    Term(coeff=self.W_matrix[2] * np.sqrt(gemitt_y), y_exp=1),
-                    Term(coeff=self.W_matrix[3] * np.sqrt(gemitt_y), py_exp=1),
+                    Term(coeff=self.W_matrix[n][0] * np.sqrt(self.gemitt_x), x_exp=1),
+                    Term(coeff=self.W_matrix[n][1] * np.sqrt(self.gemitt_x), px_exp=1),
+                    Term(coeff=self.W_matrix[n][2] * np.sqrt(self.gemitt_y), y_exp=1),
+                    Term(coeff=self.W_matrix[n][3] * np.sqrt(self.gemitt_y), py_exp=1),
                     Term(
                         coeff=(
-                            self.W_matrix[4] * self.part_norm.zeta_norm
-                            + self.W_matrix[5] * self.part_norm.pzeta_norm
+                            self.W_matrix[n][4] * self.parts_norm[n].zeta_norm[0]
+                            + self.W_matrix[n][5] * self.parts_norm[n].pzeta_norm[0]
                         )
-                        * np.sqrt(gemitt_z)
+                        * np.sqrt(self.gemitt_z)
                     ),
                 ]
             ),
-            Polynom(terms=[Term(self.twiss_data[2])]),
+            Polynom(terms=[Term(self.tw.x[n])]),
         )
         px = Polynom.sum_Polynoms(
             Polynom(
                 terms=[
-                    Term(coeff=self.W_matrix[6] * np.sqrt(gemitt_x), x_exp=1),
-                    Term(coeff=self.W_matrix[7] * np.sqrt(gemitt_x), px_exp=1),
-                    Term(coeff=self.W_matrix[8] * np.sqrt(gemitt_y), y_exp=1),
-                    Term(coeff=self.W_matrix[9] * np.sqrt(gemitt_y), py_exp=1),
+                    Term(coeff=self.W_matrix[n][6] * np.sqrt(self.gemitt_x), x_exp=1),
+                    Term(coeff=self.W_matrix[n][7] * np.sqrt(self.gemitt_x), px_exp=1),
+                    Term(coeff=self.W_matrix[n][8] * np.sqrt(self.gemitt_y), y_exp=1),
+                    Term(coeff=self.W_matrix[n][9] * np.sqrt(self.gemitt_y), py_exp=1),
                     Term(
                         coeff=(
-                            self.W_matrix[10] * self.part_norm.zeta_norm
-                            + self.W_matrix[11] * self.part_norm.pzeta_norm
+                            self.W_matrix[n][10] * self.parts_norm[n].zeta_norm[0]
+                            + self.W_matrix[n][11] * self.parts_norm[n].pzeta_norm[0]
                         )
-                        * np.sqrt(gemitt_z)
+                        * np.sqrt(self.gemitt_z)
                     ),
                 ]
             ),
-            Polynom(terms=[Term(self.twiss_data[3])]),
+            Polynom(terms=[Term(self.tw.px[n])]),
         )
         y = Polynom.sum_Polynoms(
             Polynom(
                 terms=[
-                    Term(coeff=self.W_matrix[12] * np.sqrt(gemitt_x), x_exp=1),
-                    Term(coeff=self.W_matrix[13] * np.sqrt(gemitt_x), px_exp=1),
-                    Term(coeff=self.W_matrix[14] * np.sqrt(gemitt_y), y_exp=1),
-                    Term(coeff=self.W_matrix[15] * np.sqrt(gemitt_y), py_exp=1),
+                    Term(coeff=self.W_matrix[n][12] * np.sqrt(self.gemitt_x), x_exp=1),
+                    Term(coeff=self.W_matrix[n][13] * np.sqrt(self.gemitt_x), px_exp=1),
+                    Term(coeff=self.W_matrix[n][14] * np.sqrt(self.gemitt_y), y_exp=1),
+                    Term(coeff=self.W_matrix[n][15] * np.sqrt(self.gemitt_y), py_exp=1),
                     Term(
                         coeff=(
-                            self.W_matrix[16] * self.part_norm.zeta_norm
-                            + self.W_matrix[17] * self.part_norm.pzeta_norm
+                            self.W_matrix[n][16] * self.parts_norm[n].zeta_norm[0]
+                            + self.W_matrix[n][17] * self.parts_norm[n].pzeta_norm[0]
                         )
-                        * np.sqrt(gemitt_z)
+                        * np.sqrt(self.gemitt_z)
                     ),
                 ]
             ),
-            Polynom(terms=[Term(self.twiss_data[4])]),
+            Polynom(terms=[Term(self.tw.y[n])]),
         )
         py = Polynom.sum_Polynoms(
             Polynom(
                 terms=[
-                    Term(coeff=self.W_matrix[18] * np.sqrt(gemitt_x), x_exp=1),
-                    Term(coeff=self.W_matrix[19] * np.sqrt(gemitt_x), px_exp=1),
-                    Term(coeff=self.W_matrix[20] * np.sqrt(gemitt_y), y_exp=1),
-                    Term(coeff=self.W_matrix[21] * np.sqrt(gemitt_y), py_exp=1),
+                    Term(coeff=self.W_matrix[n][18] * np.sqrt(self.gemitt_x), x_exp=1),
+                    Term(coeff=self.W_matrix[n][19] * np.sqrt(self.gemitt_x), px_exp=1),
+                    Term(coeff=self.W_matrix[n][20] * np.sqrt(self.gemitt_y), y_exp=1),
+                    Term(coeff=self.W_matrix[n][21] * np.sqrt(self.gemitt_y), py_exp=1),
                     Term(
                         coeff=(
-                            self.W_matrix[22] * self.part_norm.zeta_norm
-                            + self.W_matrix[23] * self.part_norm.pzeta_norm
+                            self.W_matrix[n][22] * self.parts_norm[n].zeta_norm[0]
+                            + self.W_matrix[n][23] * self.parts_norm[n].pzeta_norm[0]
                         )
-                        * np.sqrt(gemitt_z)
+                        * np.sqrt(self.gemitt_z)
                     ),
                 ]
             ),
-            Polynom(terms=[Term(self.twiss_data[5])]),
+            Polynom(terms=[Term(self.tw.py[n])]),
         )
 
+        return (x, px, y, py)
+    
+    def _get_norm_map_at_ele(self, n: int) -> Map:
+        """
+        Function to compute the map representation of a given element in 
+        normalised space.
+
+        Input:
+            - n: integer, index of the element
+
+        Output:
+            - Map objects in normalised space
+        """
+
+        curr_ele_map = self.poly_elements[n].ele_map
+        
+        x, px, y, py = self._get_coords_in_norm_at_ele(n)
+        
         new_x_poly = Polynom(terms=[])
-        for i in range(len(one_turn_map.x_poly.terms)):
+        for i in range(len(curr_ele_map.x_poly.terms)):
             new_x_poly = Polynom.sum_Polynoms(
                 new_x_poly,
                 Polynom.product_Coeff_Polynom(
-                    coeff=one_turn_map.x_poly.terms[i].coeff,
+                    coeff=curr_ele_map.x_poly.terms[i].coeff,
                     poly=Polynom.product_Polynoms(
                         Polynom.power_Polynom(
-                            x, one_turn_map.x_poly.terms[i].x_exp, int(1e6)
+                            x, curr_ele_map.x_poly.terms[i].x_exp, int(1e6)
                         ),
                         Polynom.product_Polynoms(
                             Polynom.power_Polynom(
-                                px, one_turn_map.x_poly.terms[i].px_exp, int(1e6)
+                                px, curr_ele_map.x_poly.terms[i].px_exp, int(1e6)
                             ),
                             Polynom.product_Polynoms(
                                 Polynom.power_Polynom(
-                                    y, one_turn_map.x_poly.terms[i].y_exp, int(1e6)
+                                    y, curr_ele_map.x_poly.terms[i].y_exp, int(1e6)
                                 ),
                                 Polynom.power_Polynom(
-                                    py, one_turn_map.x_poly.terms[i].py_exp, int(1e6)
+                                    py, curr_ele_map.x_poly.terms[i].py_exp, int(1e6)
                                 ),
                                 int(1e6),
                             ),
@@ -513,33 +491,31 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_x_poly.remove_zero_terms()
-            # new_x_poly.collect_terms()
         new_x_poly = Polynom.sum_Polynoms(
-            new_x_poly, Polynom(terms=[Term(coeff=-self.twiss_data[2])])
+            new_x_poly, Polynom(terms=[Term(coeff=-self.tw.x[n])])
         )
 
         new_px_poly = Polynom(terms=[])
-        for i in range(len(one_turn_map.px_poly.terms)):
+        for i in range(len(curr_ele_map.px_poly.terms)):
             new_px_poly = Polynom.sum_Polynoms(
                 new_px_poly,
                 Polynom.product_Coeff_Polynom(
-                    coeff=one_turn_map.px_poly.terms[i].coeff,
+                    coeff=curr_ele_map.px_poly.terms[i].coeff,
                     poly=Polynom.product_Polynoms(
                         Polynom.power_Polynom(
-                            x, one_turn_map.px_poly.terms[i].x_exp, int(1e6)
+                            x, curr_ele_map.px_poly.terms[i].x_exp, int(1e6)
                         ),
                         Polynom.product_Polynoms(
                             Polynom.power_Polynom(
-                                px, one_turn_map.px_poly.terms[i].px_exp, int(1e6)
+                                px, curr_ele_map.px_poly.terms[i].px_exp, int(1e6)
                             ),
                             Polynom.product_Polynoms(
                                 Polynom.power_Polynom(
-                                    y, one_turn_map.px_poly.terms[i].y_exp, int(1e6)
+                                    y, curr_ele_map.px_poly.terms[i].y_exp, int(1e6)
                                 ),
                                 Polynom.power_Polynom(
                                     py,
-                                    one_turn_map.px_poly.terms[i].py_exp,
+                                    curr_ele_map.px_poly.terms[i].py_exp,
                                     int(1e6),
                                 ),
                                 int(1e6),
@@ -550,32 +526,30 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_px_poly.remove_zero_terms()
-            # new_px_poly.collect_terms()
         new_px_poly = Polynom.sum_Polynoms(
-            new_px_poly, Polynom(terms=[Term(coeff=-self.twiss_data[3])])
+            new_px_poly, Polynom(terms=[Term(coeff=-self.tw.px[n])])
         )
 
         new_y_poly = Polynom(terms=[])
-        for i in range(len(one_turn_map.y_poly.terms)):
+        for i in range(len(curr_ele_map.y_poly.terms)):
             new_y_poly = Polynom.sum_Polynoms(
                 new_y_poly,
                 Polynom.product_Coeff_Polynom(
-                    coeff=one_turn_map.y_poly.terms[i].coeff,
+                    coeff=curr_ele_map.y_poly.terms[i].coeff,
                     poly=Polynom.product_Polynoms(
                         Polynom.power_Polynom(
-                            x, one_turn_map.y_poly.terms[i].x_exp, int(1e6)
+                            x, curr_ele_map.y_poly.terms[i].x_exp, int(1e6)
                         ),
                         Polynom.product_Polynoms(
                             Polynom.power_Polynom(
-                                px, one_turn_map.y_poly.terms[i].px_exp, int(1e6)
+                                px, curr_ele_map.y_poly.terms[i].px_exp, int(1e6)
                             ),
                             Polynom.product_Polynoms(
                                 Polynom.power_Polynom(
-                                    y, one_turn_map.y_poly.terms[i].y_exp, int(1e6)
+                                    y, curr_ele_map.y_poly.terms[i].y_exp, int(1e6)
                                 ),
                                 Polynom.power_Polynom(
-                                    py, one_turn_map.y_poly.terms[i].py_exp, int(1e6)
+                                    py, curr_ele_map.y_poly.terms[i].py_exp, int(1e6)
                                 ),
                                 int(1e6),
                             ),
@@ -585,33 +559,31 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_y_poly.remove_zero_terms()
-            # new_y_poly.collect_terms()
         new_y_poly = Polynom.sum_Polynoms(
-            new_y_poly, Polynom(terms=[Term(coeff=-self.twiss_data[4])])
+            new_y_poly, Polynom(terms=[Term(coeff=-self.tw.y[n])])
         )
 
         new_py_poly = Polynom(terms=[])
-        for i in range(len(one_turn_map.py_poly.terms)):
+        for i in range(len(curr_ele_map.py_poly.terms)):
             new_py_poly = Polynom.sum_Polynoms(
                 new_py_poly,
                 Polynom.product_Coeff_Polynom(
-                    coeff=one_turn_map.py_poly.terms[i].coeff,
+                    coeff=curr_ele_map.py_poly.terms[i].coeff,
                     poly=Polynom.product_Polynoms(
                         Polynom.power_Polynom(
-                            x, one_turn_map.py_poly.terms[i].x_exp, int(1e6)
+                            x, curr_ele_map.py_poly.terms[i].x_exp, int(1e6)
                         ),
                         Polynom.product_Polynoms(
                             Polynom.power_Polynom(
-                                px, one_turn_map.py_poly.terms[i].px_exp, int(1e6)
+                                px, curr_ele_map.py_poly.terms[i].px_exp, int(1e6)
                             ),
                             Polynom.product_Polynoms(
                                 Polynom.power_Polynom(
-                                    y, one_turn_map.py_poly.terms[i].y_exp, int(1e6)
+                                    y, curr_ele_map.py_poly.terms[i].y_exp, int(1e6)
                                 ),
                                 Polynom.power_Polynom(
                                     py,
-                                    one_turn_map.py_poly.terms[i].py_exp,
+                                    curr_ele_map.py_poly.terms[i].py_exp,
                                     int(1e6),
                                 ),
                                 int(1e6),
@@ -622,36 +594,34 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_py_poly.remove_zero_terms()
-            # new_py_poly.collect_terms()
         new_py_poly = Polynom.sum_Polynoms(
-            new_py_poly, Polynom(terms=[Term(coeff=-self.twiss_data[5])])
+            new_py_poly, Polynom(terms=[Term(coeff=-self.tw.py[n])])
         )
 
         new_x_norm_poly = Polynom.product_Coeff_Polynom(
-            coeff=1.0 / np.sqrt(gemitt_x),
+            coeff=1.0 / np.sqrt(self.gemitt_x),
             poly=Polynom.sum_Polynoms(
                 Polynom.product_Coeff_Polynom(
-                    coeff=self.W_matrix_inv[0], poly=new_x_poly
+                    coeff=self.W_matrix_inv[n][0], poly=new_x_poly
                 ),
                 Polynom.sum_Polynoms(
                     Polynom.product_Coeff_Polynom(
-                        coeff=self.W_matrix_inv[1], poly=new_px_poly
+                        coeff=self.W_matrix_inv[n][1], poly=new_px_poly
                     ),
                     Polynom.sum_Polynoms(
                         Polynom.product_Coeff_Polynom(
-                            coeff=self.W_matrix_inv[2], poly=new_y_poly
+                            coeff=self.W_matrix_inv[n][2], poly=new_y_poly
                         ),
                         Polynom.sum_Polynoms(
                             Polynom.product_Coeff_Polynom(
-                                coeff=self.W_matrix_inv[3], poly=new_py_poly
+                                coeff=self.W_matrix_inv[n][3], poly=new_py_poly
                             ),
                             Polynom(
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[4] * self.part.zeta
-                                            + self.W_matrix_inv[5] * self.part.pzeta
+                                            self.W_matrix_inv[n][4] * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][5] * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -662,29 +632,29 @@ class PolyLine4D:
             ),
         )
         new_px_norm_poly = Polynom.product_Coeff_Polynom(
-            coeff=1.0 / np.sqrt(gemitt_x),
+            coeff=1.0 / np.sqrt(self.gemitt_x),
             poly=Polynom.sum_Polynoms(
                 Polynom.product_Coeff_Polynom(
-                    coeff=self.W_matrix_inv[6], poly=new_x_poly
+                    coeff=self.W_matrix_inv[n][6], poly=new_x_poly
                 ),
                 Polynom.sum_Polynoms(
                     Polynom.product_Coeff_Polynom(
-                        coeff=self.W_matrix_inv[7], poly=new_px_poly
+                        coeff=self.W_matrix_inv[n][7], poly=new_px_poly
                     ),
                     Polynom.sum_Polynoms(
                         Polynom.product_Coeff_Polynom(
-                            coeff=self.W_matrix_inv[8], poly=new_y_poly
+                            coeff=self.W_matrix_inv[n][8], poly=new_y_poly
                         ),
                         Polynom.sum_Polynoms(
                             Polynom.product_Coeff_Polynom(
-                                coeff=self.W_matrix_inv[9], poly=new_py_poly
+                                coeff=self.W_matrix_inv[n][9], poly=new_py_poly
                             ),
                             Polynom(
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[10] * self.part.zeta
-                                            + self.W_matrix_inv[11] * self.part.pzeta
+                                            self.W_matrix_inv[n][10] * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][11] * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -695,29 +665,29 @@ class PolyLine4D:
             ),
         )
         new_y_norm_poly = Polynom.product_Coeff_Polynom(
-            coeff=1.0 / np.sqrt(gemitt_y),
+            coeff=1.0 / np.sqrt(self.gemitt_y),
             poly=Polynom.sum_Polynoms(
                 Polynom.product_Coeff_Polynom(
-                    coeff=self.W_matrix_inv[12], poly=new_x_poly
+                    coeff=self.W_matrix_inv[n][12], poly=new_x_poly
                 ),
                 Polynom.sum_Polynoms(
                     Polynom.product_Coeff_Polynom(
-                        coeff=self.W_matrix_inv[13], poly=new_px_poly
+                        coeff=self.W_matrix_inv[n][13], poly=new_px_poly
                     ),
                     Polynom.sum_Polynoms(
                         Polynom.product_Coeff_Polynom(
-                            coeff=self.W_matrix_inv[14], poly=new_y_poly
+                            coeff=self.W_matrix_inv[n][14], poly=new_y_poly
                         ),
                         Polynom.sum_Polynoms(
                             Polynom.product_Coeff_Polynom(
-                                coeff=self.W_matrix_inv[15], poly=new_py_poly
+                                coeff=self.W_matrix_inv[n][15], poly=new_py_poly
                             ),
                             Polynom(
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[16] * self.part.zeta
-                                            + self.W_matrix_inv[17] * self.part.pzeta
+                                            self.W_matrix_inv[n][16] * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][17] * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -728,29 +698,29 @@ class PolyLine4D:
             ),
         )
         new_py_norm_poly = Polynom.product_Coeff_Polynom(
-            coeff=1.0 / np.sqrt(gemitt_y),
+            coeff=1.0 / np.sqrt(self.gemitt_y),
             poly=Polynom.sum_Polynoms(
                 Polynom.product_Coeff_Polynom(
-                    coeff=self.W_matrix_inv[18], poly=new_x_poly
+                    coeff=self.W_matrix_inv[n][18], poly=new_x_poly
                 ),
                 Polynom.sum_Polynoms(
                     Polynom.product_Coeff_Polynom(
-                        coeff=self.W_matrix_inv[19], poly=new_px_poly
+                        coeff=self.W_matrix_inv[n][19], poly=new_px_poly
                     ),
                     Polynom.sum_Polynoms(
                         Polynom.product_Coeff_Polynom(
-                            coeff=self.W_matrix_inv[20], poly=new_y_poly
+                            coeff=self.W_matrix_inv[n][20], poly=new_y_poly
                         ),
                         Polynom.sum_Polynoms(
                             Polynom.product_Coeff_Polynom(
-                                coeff=self.W_matrix_inv[21], poly=new_py_poly
+                                coeff=self.W_matrix_inv[n][21], poly=new_py_poly
                             ),
                             Polynom(
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[22] * self.part.zeta
-                                            + self.W_matrix_inv[23] * self.part.pzeta
+                                            self.W_matrix_inv[n][22] * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][23] * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -761,33 +731,142 @@ class PolyLine4D:
             ),
         )
 
-        self.one_turn_map = Map(
+        curr_ele_map_norm = Map(
             x_poly=new_x_norm_poly,
             px_poly=new_px_norm_poly,
             y_poly=new_y_norm_poly,
             py_poly=new_py_norm_poly,
         )
 
-        for term in self.one_turn_map.x_poly.terms:
+        for term in curr_ele_map_norm.x_poly.terms:
             try:
                 term.coeff = term.coeff[0]  # type: ignore[index]
-            except TypeError:
+            except (TypeError, IndexError) as e:
                 continue
-        for term in self.one_turn_map.px_poly.terms:
+        for term in curr_ele_map_norm.px_poly.terms:
             try:
                 term.coeff = term.coeff[0]  # type: ignore[index]
-            except TypeError:
+            except (TypeError, IndexError) as e:
                 continue
-        for term in self.one_turn_map.y_poly.terms:
+        for term in curr_ele_map_norm.y_poly.terms:
             try:
                 term.coeff = term.coeff[0]  # type: ignore[index]
-            except TypeError:
+            except (TypeError, IndexError) as e:
                 continue
-        for term in self.one_turn_map.py_poly.terms:
+        for term in curr_ele_map_norm.py_poly.terms:
             try:
                 term.coeff = term.coeff[0]  # type: ignore[index]
-            except TypeError:
+            except (TypeError, IndexError) as e:
                 continue
+
+        return curr_ele_map_norm
+
+    def calculate_one_turn_map(self) -> None:
+        """
+        Function to calculate the one-turn map by composing the individual
+        polynomial element maps directly in normalised space and truncating 
+        at the given order. The map calculated will be in normalised space.
+
+        Input:
+            -
+
+        Output:
+            -
+        """
+        
+        one_turn_map = PolyIdentity4D().ele_map
+
+        nonlin_poly_ele_idx = []
+        nonlin_poly_ele_norm = []
+
+        mux = 0.0
+        muy = 0.0
+
+        total = len(self.poly_elements)
+        for i in range(0, len(self.poly_elements)):
+            if isinstance(self.poly_elements[i], self.linear_poly_elements):
+                continue
+            elif isinstance(self.poly_elements[i], PolyMultipole4D):
+                if self.poly_elements[i].ele_map.get_max_order() < 2:
+                    continue
+                else:
+                    nonlin_poly_ele_idx.append(i)
+                    nonlin_poly_ele_norm.append(self._get_norm_map_at_ele(i))
+            else:
+                nonlin_poly_ele_idx.append(i)
+                nonlin_poly_ele_norm.append(self._get_norm_map_at_ele(i))
+        
+        idx = 0
+        for i in range(len(nonlin_poly_ele_idx)):
+            d_mux = (self.tw.mux[nonlin_poly_ele_idx[i]] - self.tw.mux[idx]) * 2 * np.pi
+            d_muy = (self.tw.muy[nonlin_poly_ele_idx[i]] - self.tw.muy[idx]) * 2 * np.pi
+            mux += d_mux
+            muy += d_muy
+            curr_rot = Map(
+                x_poly=Polynom(terms=[
+                    Term(coeff=np.cos(d_mux), x_exp=1),
+                    Term(coeff=np.sin(d_mux), px_exp=1)
+                ]),
+                px_poly=Polynom(terms=[
+                    Term(coeff=-np.sin(d_mux), x_exp=1),
+                    Term(coeff=np.cos(d_mux), px_exp=1)
+                ]),
+                y_poly=Polynom(terms=[
+                    Term(coeff=np.cos(d_muy), y_exp=1),
+                    Term(coeff=np.sin(d_muy), py_exp=1)
+                ]),
+                py_poly=Polynom(terms=[
+                    Term(coeff=-np.sin(d_muy), y_exp=1),
+                    Term(coeff=np.cos(d_muy), py_exp=1)
+                ])
+            )
+            one_turn_map = Map.composition_Map(
+                one_turn_map, curr_rot, self.max_map_order
+            )
+            one_turn_map = Map.composition_Map(
+                one_turn_map, nonlin_poly_ele_norm[i], self.max_map_order
+            )
+            idx = nonlin_poly_ele_idx[i]
+            progress = (nonlin_poly_ele_idx[i] / (total - 1)) * 100
+            sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
+            sys.stdout.flush()
+
+        if nonlin_poly_ele_idx[-1] != (total - 1):
+            d_mux = (self.tw.mux[total] - self.tw.mux[idx]) * 2 * np.pi
+            d_muy = (self.tw.muy[total] - self.tw.muy[idx]) * 2 * np.pi
+            mux += d_mux
+            muy += d_muy
+            curr_rot = Map(
+                x_poly=Polynom(terms=[
+                    Term(coeff=np.cos(d_mux), x_exp=1),
+                    Term(coeff=np.sin(d_mux), px_exp=1)
+                ]),
+                px_poly=Polynom(terms=[
+                    Term(coeff=-np.sin(d_mux), x_exp=1),
+                    Term(coeff=np.cos(d_mux), px_exp=1)
+                ]),
+                y_poly=Polynom(terms=[
+                    Term(coeff=np.cos(d_muy), y_exp=1),
+                    Term(coeff=np.sin(d_muy), py_exp=1)
+                ]),
+                py_poly=Polynom(terms=[
+                    Term(coeff=-np.sin(d_muy), y_exp=1),
+                    Term(coeff=np.cos(d_muy), py_exp=1)
+                ])
+            )
+            one_turn_map = Map.composition_Map(
+                one_turn_map, curr_rot, self.max_map_order
+            )
+            progress = 100
+            sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
+            sys.stdout.flush()
+
+        print(mux / (2*np.pi))
+        print(muy / (2*np.pi))
+
+        print("\nCombination of all line elements finished!")
+
+        self.one_turn_map = one_turn_map
 
     def _calculate_complex_one_turn_map(self) -> None:
         """
@@ -851,8 +930,6 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_x_poly.remove_zero_terms()
-            # new_x_poly.collect_terms()
 
         new_px_poly = Polynom(terms=[])
         for i in range(len(self.one_turn_map.px_poly.terms)):
@@ -889,8 +966,6 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_px_poly.remove_zero_terms()
-            # new_px_poly.collect_terms()
 
         new_y_poly = Polynom(terms=[])
         for i in range(len(self.one_turn_map.y_poly.terms)):
@@ -927,8 +1002,6 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_y_poly.remove_zero_terms()
-            # new_y_poly.collect_terms()
 
         new_py_poly = Polynom(terms=[])
         for i in range(len(self.one_turn_map.py_poly.terms)):
@@ -965,8 +1038,6 @@ class PolyLine4D:
                     ),
                 ),
             )
-            # new_py_poly.remove_zero_terms()
-            # new_py_poly.collect_terms()
 
         self._complex_one_turn_map = Map(
             x_poly=Polynom.sum_Polynoms(
