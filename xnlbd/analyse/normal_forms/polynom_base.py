@@ -495,18 +495,10 @@ class Map:
         Function that returns the maximum map order.
 
         Input:
-            - x_val: array-like of initial values of the first
-              coordinate
-            - px_val: array-like of initial values of the second
-              coordinate
-            - y_val: array-like of initial values of the third
-              coordinate
-            - py_val: array-like of initial values of the fourth
-              coordinate
+            - 
 
         Output:
-            - array-like of the numerical value of the polynomial
-              after substitution
+            - integer representing the maximum map order
         """
         
         max_x_order = self.x_poly.get_max_order()
