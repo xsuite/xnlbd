@@ -203,7 +203,7 @@ class NormalForm4D:
             raise ValueError("Complex one-turn map is not provided!")
         else:
             if self._F is None:
-                self._F = [[0] * self.N_dim for i in range(4)]
+                self._F = [[0 + 0j] * self.N_dim for i in range(4)]
             for i in range(len(self._complex_one_turn_map.x_poly.terms)):
                 idx = self._idx_dict[
                     (
@@ -1053,9 +1053,9 @@ class NormalForm4D:
 
         complex_norm = self.Phi.substitute(zeta1, zeta1s, zeta2, zeta2s)
 
-        x_norm = (complex_norm[0] + complex_norm[1]) / 2.0
-        px_norm = 1j * (complex_norm[0] - complex_norm[1]) / 2.0
-        y_norm = (complex_norm[2] + complex_norm[3]) / 2.0
-        py_norm = 1j * (complex_norm[2] - complex_norm[3]) / 2.0
+        x_norm = np.asarray((complex_norm[0] + complex_norm[1]) / 2.0, dtype=float)
+        px_norm = np.asarray(1j * (complex_norm[0] - complex_norm[1]) / 2.0, dtype=float)
+        y_norm = np.asarray((complex_norm[2] + complex_norm[3]) / 2.0, dtype=float)
+        py_norm = np.asarray(1j * (complex_norm[2] - complex_norm[3]) / 2.0, dtype=float)
 
         return (x_norm, px_norm, y_norm, py_norm)
