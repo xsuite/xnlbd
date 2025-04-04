@@ -779,9 +779,6 @@ class PolyLine4D:
         nonlin_poly_ele_idx = []
         nonlin_poly_ele_norm = []
 
-        mux = 0.0
-        muy = 0.0
-
         total = len(self.poly_elements)
         for i in range(0, len(self.poly_elements)):
             if isinstance(self.poly_elements[i], self.linear_poly_elements):
@@ -800,8 +797,6 @@ class PolyLine4D:
         for i in range(len(nonlin_poly_ele_idx)):
             d_mux = (self.tw.mux[nonlin_poly_ele_idx[i]] - self.tw.mux[idx]) * 2 * np.pi
             d_muy = (self.tw.muy[nonlin_poly_ele_idx[i]] - self.tw.muy[idx]) * 2 * np.pi
-            mux += d_mux
-            muy += d_muy
             curr_rot = Map(
                 x_poly=Polynom(terms=[
                     Term(coeff=np.cos(d_mux), x_exp=1),
@@ -834,8 +829,6 @@ class PolyLine4D:
         if nonlin_poly_ele_idx[-1] != (total - 1):
             d_mux = (self.tw.mux[total] - self.tw.mux[idx]) * 2 * np.pi
             d_muy = (self.tw.muy[total] - self.tw.muy[idx]) * 2 * np.pi
-            mux += d_mux
-            muy += d_muy
             curr_rot = Map(
                 x_poly=Polynom(terms=[
                     Term(coeff=np.cos(d_mux), x_exp=1),
@@ -860,9 +853,6 @@ class PolyLine4D:
             progress = 100
             sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
             sys.stdout.flush()
-
-        print(mux / (2*np.pi))
-        print(muy / (2*np.pi))
 
         print("\nCombination of all line elements finished!")
 
