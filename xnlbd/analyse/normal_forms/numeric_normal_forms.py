@@ -1054,8 +1054,12 @@ class NormalForm4D:
         complex_norm = self.Phi.substitute(zeta1, zeta1s, zeta2, zeta2s)
 
         x_norm = np.asarray((complex_norm[0] + complex_norm[1]) / 2.0, dtype=float)
-        px_norm = np.asarray(1j * (complex_norm[0] - complex_norm[1]) / 2.0, dtype=float)
+        px_norm = np.asarray(
+            1j * (complex_norm[0] - complex_norm[1]) / 2.0, dtype=float
+        )
         y_norm = np.asarray((complex_norm[2] + complex_norm[3]) / 2.0, dtype=float)
-        py_norm = np.asarray(1j * (complex_norm[2] - complex_norm[3]) / 2.0, dtype=float)
+        py_norm = np.asarray(
+            1j * (complex_norm[2] - complex_norm[3]) / 2.0, dtype=float
+        )
 
         return (x_norm, px_norm, y_norm, py_norm)
