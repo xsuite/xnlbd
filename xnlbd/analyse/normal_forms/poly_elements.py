@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import Protocol, Sequence, Union
 
 import numpy as np
-import xobjects as xo  # type: ignore
-from scipy.special import binom  # type: ignore
-from scipy.special import factorial  # type: ignore
-from xtrack.particles.particles import Particles  # type: ignore
+import xobjects as xo  # type: ignore[import-untyped, import-not-found]
+from scipy.special import binom  # type: ignore[import-untyped, import-not-found]
+from xtrack.particles.particles import (  # type: ignore[import-untyped, import-not-found]
+    Particles,
+)
 
 from .polynom_base import *
 
@@ -44,6 +45,55 @@ class PolyElement4D(ABC):
             ),
             py_poly=Polynom(terms=[Term(coeff=1.0, py_exp=1)]),
         )
+
+        return ele_map
+
+    @staticmethod
+    def Drift_exact(part: Particles, length: float, max_order: int) -> Map:
+        one_plus_delta = 1 + part.delta[0]
+
+        u = Polynom(
+            terms=[
+                Term(coeff=1.0 / one_plus_delta**2, px_exp=2),
+                Term(coeff=1.0 / one_plus_delta**2, py_exp=2),
+            ]
+        )
+        one_over_pz = Polynom(terms=[Term(coeff=0.0)])
+        for n in range(0, max_order):
+            one_over_pz = Polynom.sum_Polynoms(
+                one_over_pz,
+                Polynom.product_Coeff_Polynom(
+                    coeff=1.0 / one_plus_delta * (-1) ** n * binom(-0.5, n),
+                    poly=Polynom.power_Polynom(poly=u, pow=n, max_order=max_order),
+                ),
+            )
+        one_over_pz.collect_terms()
+        one_over_pz.remove_zero_terms()
+
+        x_poly = Polynom.product_Polynoms(
+            Polynom(terms=[Term(coeff=1.0, px_exp=1)]), one_over_pz, max_order
+        )
+        y_poly = Polynom.product_Polynoms(
+            Polynom(terms=[Term(coeff=1.0, py_exp=1)]), one_over_pz, max_order
+        )
+
+        ele_map = Map(
+            x_poly=Polynom.sum_Polynoms(
+                Polynom(terms=[Term(coeff=1.0, x_exp=1)]),
+                Polynom.product_Coeff_Polynom(coeff=length, poly=x_poly),
+            ),
+            px_poly=Polynom(terms=[Term(coeff=1.0, px_exp=1)]),
+            y_poly=Polynom.sum_Polynoms(
+                Polynom(terms=[Term(coeff=1.0, y_exp=1)]),
+                Polynom.product_Coeff_Polynom(coeff=length, poly=y_poly),
+            ),
+            py_poly=Polynom(terms=[Term(coeff=1.0, py_exp=1)]),
+        )
+
+        ele_map.x_poly.truncate_at_order(max_order)
+        ele_map.px_poly.truncate_at_order(max_order)
+        ele_map.y_poly.truncate_at_order(max_order)
+        ele_map.py_poly.truncate_at_order(max_order)
 
         return ele_map
 
@@ -217,7 +267,9 @@ class PolyMarker4D(PolyElement4D):
 
 class PolyDrift4D(PolyElement4D):
 
-    def __init__(self, part: Particles, length: float) -> None:
+    def __init__(
+        self, part: Particles, length: float, exact: int = 0, max_order: int = 1
+    ) -> None:
         # rpp = part.rpp[0]
 
         # self.ele_map = Map(
@@ -236,8 +288,10 @@ class PolyDrift4D(PolyElement4D):
         #     ),
         #     py_poly=Polynom(terms=[Term(coeff=1, py_exp=1)]),
         # )
-
-        self.ele_map = PolyElement4D.Drift(part, length)
+        if exact:
+            self.ele_map = PolyElement4D.Drift_exact(part, length, max_order)
+        else:
+            self.ele_map = PolyElement4D.Drift(part, length)
 
 
 class PolyCavity4D(PolyElement4D):
@@ -485,6 +539,7 @@ class PolySextupole4D(PolyElement4D):
         edge_entry_active: int,
         edge_exit_active: int,
         max_order: int,
+        exact: int = 0,
     ) -> None:
         if edge_entry_active or edge_exit_active:
             raise NotImplementedError(
@@ -497,7 +552,10 @@ class PolySextupole4D(PolyElement4D):
         combined_kn = [0, 0, k2 / 2]
         combined_ks = [0, 0, k2s / 2]
 
-        drift1_map = self.Drift(part, length / 2.0)
+        if exact:
+            drift1_map = self.Drift_exact(part, length / 2.0, max_order)
+        else:
+            drift1_map = self.Drift(part, length / 2.0)
 
         multipole_map = self.Multipole(
             part,
@@ -514,7 +572,10 @@ class PolySextupole4D(PolyElement4D):
             0.5,
         )
 
-        drift2_map = self.Drift(part, length / 2.0)
+        if exact:
+            drift2_map = self.Drift_exact(part, length, max_order)
+        else:
+            drift2_map = self.Drift(part, length / 2.0)
 
         ele_map = Map.composition_Map(drift1_map, multipole_map, max_order)
         ele_map = Map.composition_Map(ele_map, drift2_map, max_order)
@@ -537,6 +598,7 @@ class PolyOctupole4D(PolyElement4D):
         edge_entry_active: int,
         edge_exit_active: int,
         max_order: int,
+        exact: int = 0,
     ) -> None:
         if edge_entry_active or edge_exit_active:
             raise NotImplementedError(
@@ -549,7 +611,10 @@ class PolyOctupole4D(PolyElement4D):
         combined_kn = [0, 0, 0, k3 / 6]
         combined_ks = [0, 0, 0, k3s / 6]
 
-        drift1_map = self.Drift(part, length / 2.0)
+        if exact:
+            drift1_map = self.Drift_exact(part, length / 2.0, max_order)
+        else:
+            drift1_map = self.Drift(part, length / 2.0)
 
         multipole_map = self.Multipole(
             part,
@@ -566,7 +631,10 @@ class PolyOctupole4D(PolyElement4D):
             1.0 / 6.0,
         )
 
-        drift2_map = self.Drift(part, length / 2.0)
+        if exact:
+            drift2_map = self.Drift_exact(part, length, max_order)
+        else:
+            drift2_map = self.Drift(part, length / 2.0)
 
         ele_map = Map.composition_Map(drift1_map, multipole_map, max_order)
         ele_map = Map.composition_Map(ele_map, drift2_map, max_order)
@@ -589,7 +657,39 @@ class PolyOctupole4D(PolyElement4D):
 ### TODO: Wedge
 
 
-### TODO: SimpleThinBend4D
+class PolySimpleThinBend4D(PolyElement4D):
+
+    def __init__(
+        self, part: Particles, length: float, knl: Sequence[float], hxl: float
+    ) -> None:
+        chi = part.chi[0]
+        delta = part.delta[0]
+        rv0v = 1.0 / part.rvv[0]
+        knl0 = knl[0]
+
+        dpx = Polynom(terms=[Term(coeff=-chi * knl0)])
+
+        if (hxl > 0) or (hxl < 0):
+            x = Polynom(terms=[Term(coeff=1.0, x_exp=1)])
+
+            hxlx = Polynom.product_Coeff_Polynom(coeff=hxl, poly=x)
+
+            dpx = Polynom.sum_Polynoms(
+                dpx, Polynom(terms=[Term(coeff=(hxl + hxl * delta))])
+            )
+
+            if length != 0:
+                b1l = chi * knl0
+                dpx = Polynom.sum_Polynoms(
+                    dpx, Polynom.product_Coeff_Polynom(coeff=(-b1l / length), poly=hxlx)
+                )
+
+        self.ele_map = Map(
+            x_poly=Polynom(terms=[Term(coeff=1, x_exp=1)]),
+            px_poly=Polynom.sum_Polynoms(Polynom(terms=[Term(coeff=1, px_exp=1)]), dpx),
+            y_poly=Polynom(terms=[Term(coeff=1, y_exp=1)]),
+            py_poly=Polynom(terms=[Term(coeff=1, py_exp=1)]),
+        )
 
 
 ### TODO: RFMultipole

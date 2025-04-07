@@ -374,6 +374,61 @@ def test_PolySimpleThinQuadrupole4D():
     assert np.all(np.isclose(part.py, py_tracked, rtol=1e-14, atol=1e-16))
 
 
+def test_PolySimpleThinBend4D():
+    ref_part = xt.Particles(
+        x=0, px=0, y=0, py=0, zeta=0, delta=0.74e-3, p0c=450e9, mass0=xp.PROTON_MASS_EV
+    )
+
+    element = xt.SimpleThinBend(
+        knl=[0.1],
+        hxl=0.2,
+        length=7,
+    )
+    line = xt.Line(elements=[element], element_names=["SimpleThinBend"])
+    line.particle_ref = ref_part
+
+    x_vals = np.random.uniform(-1e-3, 1e-3, 100)
+    px_vals = np.random.uniform(-5e-6, 5e-6, 100)
+    y_vals = np.random.uniform(-1e-3, 1e-3, 100)
+    py_vals = np.random.uniform(-5e-6, 5e-6, 100)
+    zeta_vals = np.zeros(100)
+    delta_vals = np.ones(100) * 0.74e-3
+
+    part = xt.Particles(
+        x=x_vals,
+        px=px_vals,
+        y=y_vals,
+        py=py_vals,
+        zeta=zeta_vals,
+        delta=delta_vals,
+        p0c=line.particle_ref.p0c,
+    )
+
+    line.build_tracker()
+    line.track(part)
+
+    poly_element = PolySimpleThinBend4D(
+        part=ref_part,
+        knl=line.element_refs["SimpleThinBend"].knl._get_value(),
+        hxl=line.element_refs["SimpleThinBend"].hxl._get_value(),
+        length=line.element_refs["SimpleThinBend"].length._get_value(),
+    )
+
+    x_tracked = poly_element.ele_map.x_poly.substitute(x_vals, px_vals, y_vals, py_vals)
+    px_tracked = poly_element.ele_map.px_poly.substitute(
+        x_vals, px_vals, y_vals, py_vals
+    )
+    y_tracked = poly_element.ele_map.y_poly.substitute(x_vals, px_vals, y_vals, py_vals)
+    py_tracked = poly_element.ele_map.py_poly.substitute(
+        x_vals, px_vals, y_vals, py_vals
+    )
+
+    assert np.all(np.isclose(part.x, x_tracked, rtol=1e-14, atol=1e-16))
+    assert np.all(np.isclose(part.px, px_tracked, rtol=1e-14, atol=1e-16))
+    assert np.all(np.isclose(part.y, y_tracked, rtol=1e-14, atol=1e-16))
+    assert np.all(np.isclose(part.py, py_tracked, rtol=1e-14, atol=1e-16))
+
+
 def test_PolySextupole4D():
     ref_part = xt.Particles(
         x=0, px=0, y=0, py=0, zeta=0, delta=0.9e-3, p0c=450e9, mass0=xp.PROTON_MASS_EV

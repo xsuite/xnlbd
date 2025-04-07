@@ -73,10 +73,10 @@ class PolyLine4D:
         PolyIdentity4D,
         PolyReferenceEnergyIncrease4D,
         PolyMarker4D,
-        PolyDrift4D, 
+        PolyDrift4D,
         PolyCavity4D,
         PolyZetaShift4D,
-        # PolySimpleThinBend4D,
+        PolySimpleThinBend4D,
         PolySimpleThinQuadrupole4D,
         PolyDipoleEdge4D,
     )
@@ -122,15 +122,23 @@ class PolyLine4D:
         except AttributeError:
             self.exact_drifts = 0
 
-        unique_thick_ele_types = tuple(set(type(ele) for ele in line.elements if ele.isthick))
-        if len(unique_thick_ele_types) != 1: # line contains thick elements other than drifts
-            print("Thick elements are not supported for normal forms, \\ "
+        unique_thick_ele_types = tuple(
+            set(type(ele) for ele in line.elements if ele.isthick)
+        )
+        if (
+            len(unique_thick_ele_types) != 1
+        ):  # line contains thick elements other than drifts
+            print(
+                "Thick elements are not supported for normal forms, \\ "
                 "they will be sliced and replaced with thin equivalents! \\"
                 "Tunes, chromaticities and other features of the machine \\"
                 "(e.g. closed orbit bumps) may change. If these are of \\"
                 "interest, please provide a line containing thin elements \\"
-                "only.")
-            line.slice_thick_elements(slicing_strategies=[xt.Strategy(slicing=xt.Uniform(1))])
+                "only."
+            )
+            line.slice_thick_elements(
+                slicing_strategies=[xt.Strategy(slicing=xt.Uniform(1))]
+            )
 
         self.poly_elements: list[PolyElement4D] = []
         self.one_turn_map: Map | None = None
@@ -152,15 +160,15 @@ class PolyLine4D:
             self.W_matrix.append(self.tw.W_matrix[i].flatten())
             self.W_matrix_inv.append(np.linalg.inv(self.tw.W_matrix[i]).flatten())
             part0 = xt.Particles(
-                x=self.tw.x[i], 
-                px=self.tw.px[i], 
-                y=self.tw.y[i], 
-                py=self.tw.py[i], 
-                zeta=self.tw.zeta[i], 
-                delta=self.tw.delta[i], 
-                p0c=self.tw.particle_on_co.p0c, 
-                mass0=self.tw.particle_on_co.mass0, 
-                q0=self.tw.particle_on_co.q0
+                x=self.tw.x[i],
+                px=self.tw.px[i],
+                y=self.tw.y[i],
+                py=self.tw.py[i],
+                zeta=self.tw.zeta[i],
+                delta=self.tw.delta[i],
+                p0c=self.tw.particle_on_co.p0c,
+                mass0=self.tw.particle_on_co.mass0,
+                q0=self.tw.particle_on_co.q0,
             )
             self.parts.append(part0)
             part_norm0 = NormedParticles(
@@ -207,7 +215,10 @@ class PolyLine4D:
                 case Drift():
                     self.poly_elements.append(
                         PolyDrift4D(
-                            part=part, length=ele.length, exact=self.exact_drifts, max_order=max_ele_order
+                            part=part,
+                            length=ele.length,
+                            exact=self.exact_drifts,
+                            max_order=max_ele_order,
                         )
                     )
                 case Cavity():
@@ -237,6 +248,12 @@ class PolyLine4D:
                             hxl=ele.hxl,
                             length=ele.length,
                             max_order=max_ele_order,
+                        )
+                    )
+                case SimpleThinBend():
+                    self.poly_elements.append(
+                        PolySimpleThinBend4D(
+                            part=part, knl=ele.knl, hxl=ele.hxl, length=ele.length
                         )
                     )
                 case SimpleThinQuadrupole():
@@ -269,7 +286,7 @@ class PolyLine4D:
                             edge_entry_active=ele.edge_entry_active,
                             edge_exit_active=ele.edge_exit_active,
                             max_order=max_ele_order,
-                            exact=self.exact_drifts
+                            exact=self.exact_drifts,
                         )
                     )
                 case Octupole():
@@ -286,7 +303,7 @@ class PolyLine4D:
                             edge_entry_active=ele.edge_entry_active,
                             edge_exit_active=ele.edge_exit_active,
                             max_order=max_ele_order,
-                            exact=self.exact_drifts
+                            exact=self.exact_drifts,
                         )
                     )
                 case Henonmap():
@@ -334,7 +351,7 @@ class PolyLine4D:
     def _calculate_one_turn_map_real(self) -> None:
         """
         Function to calculate the one-turn map by composing the individual
-        polynomial element maps and truncating at the given order. The map 
+        polynomial element maps and truncating at the given order. The map
         calculated will be in real physical space.
 
         Input:
@@ -358,19 +375,21 @@ class PolyLine4D:
 
         self.one_turn_map_real = one_turn_map
 
-    def _get_coords_in_norm_at_ele(self, n: int) -> tuple[Polynom, Polynom, Polynom, Polynom]:
+    def _get_coords_in_norm_at_ele(
+        self, n: int
+    ) -> tuple[Polynom, Polynom, Polynom, Polynom]:
         """
-        Function to compute the polynomial representations of physical space 
+        Function to compute the polynomial representations of physical space
         coordinates as a function of normalised coordinates at a given element.
 
         Input:
             - n: integer, index of the element
 
         Output:
-            - tuple of Polynom objects representing (x, px, y, py) in terms of 
+            - tuple of Polynom objects representing (x, px, y, py) in terms of
               normalised equivalents
         """
-        
+
         x = Polynom.sum_Polynoms(
             Polynom(
                 terms=[
@@ -445,10 +464,10 @@ class PolyLine4D:
         )
 
         return (x, px, y, py)
-    
+
     def _get_norm_map_at_ele(self, n: int) -> Map:
         """
-        Function to compute the map representation of a given element in 
+        Function to compute the map representation of a given element in
         normalised space.
 
         Input:
@@ -459,9 +478,9 @@ class PolyLine4D:
         """
 
         curr_ele_map = self.poly_elements[n].ele_map
-        
+
         x, px, y, py = self._get_coords_in_norm_at_ele(n)
-        
+
         new_x_poly = Polynom(terms=[])
         for i in range(len(curr_ele_map.x_poly.terms)):
             new_x_poly = Polynom.sum_Polynoms(
@@ -620,8 +639,10 @@ class PolyLine4D:
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[n][4] * self.parts[n].zeta[0]
-                                            + self.W_matrix_inv[n][5] * self.parts[n].pzeta[0]
+                                            self.W_matrix_inv[n][4]
+                                            * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][5]
+                                            * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -653,8 +674,10 @@ class PolyLine4D:
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[n][10] * self.parts[n].zeta[0]
-                                            + self.W_matrix_inv[n][11] * self.parts[n].pzeta[0]
+                                            self.W_matrix_inv[n][10]
+                                            * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][11]
+                                            * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -686,8 +709,10 @@ class PolyLine4D:
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[n][16] * self.parts[n].zeta[0]
-                                            + self.W_matrix_inv[n][17] * self.parts[n].pzeta[0]
+                                            self.W_matrix_inv[n][16]
+                                            * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][17]
+                                            * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -719,8 +744,10 @@ class PolyLine4D:
                                 terms=[
                                     Term(
                                         coeff=(
-                                            self.W_matrix_inv[n][22] * self.parts[n].zeta[0]
-                                            + self.W_matrix_inv[n][23] * self.parts[n].pzeta[0]
+                                            self.W_matrix_inv[n][22]
+                                            * self.parts[n].zeta[0]
+                                            + self.W_matrix_inv[n][23]
+                                            * self.parts[n].pzeta[0]
                                         )
                                     )
                                 ]
@@ -764,7 +791,7 @@ class PolyLine4D:
     def calculate_one_turn_map(self) -> None:
         """
         Function to calculate the one-turn map by composing the individual
-        polynomial element maps directly in normalised space and truncating 
+        polynomial element maps directly in normalised space and truncating
         at the given order. The map calculated will be in normalised space.
 
         Input:
@@ -773,7 +800,7 @@ class PolyLine4D:
         Output:
             -
         """
-        
+
         one_turn_map = PolyIdentity4D().ele_map
 
         nonlin_poly_ele_idx = []
@@ -792,28 +819,36 @@ class PolyLine4D:
             else:
                 nonlin_poly_ele_idx.append(i)
                 nonlin_poly_ele_norm.append(self._get_norm_map_at_ele(i))
-        
+
         idx = 0
         for i in range(len(nonlin_poly_ele_idx)):
             d_mux = (self.tw.mux[nonlin_poly_ele_idx[i]] - self.tw.mux[idx]) * 2 * np.pi
             d_muy = (self.tw.muy[nonlin_poly_ele_idx[i]] - self.tw.muy[idx]) * 2 * np.pi
             curr_rot = Map(
-                x_poly=Polynom(terms=[
-                    Term(coeff=np.cos(d_mux), x_exp=1),
-                    Term(coeff=np.sin(d_mux), px_exp=1)
-                ]),
-                px_poly=Polynom(terms=[
-                    Term(coeff=-np.sin(d_mux), x_exp=1),
-                    Term(coeff=np.cos(d_mux), px_exp=1)
-                ]),
-                y_poly=Polynom(terms=[
-                    Term(coeff=np.cos(d_muy), y_exp=1),
-                    Term(coeff=np.sin(d_muy), py_exp=1)
-                ]),
-                py_poly=Polynom(terms=[
-                    Term(coeff=-np.sin(d_muy), y_exp=1),
-                    Term(coeff=np.cos(d_muy), py_exp=1)
-                ])
+                x_poly=Polynom(
+                    terms=[
+                        Term(coeff=np.cos(d_mux), x_exp=1),
+                        Term(coeff=np.sin(d_mux), px_exp=1),
+                    ]
+                ),
+                px_poly=Polynom(
+                    terms=[
+                        Term(coeff=-np.sin(d_mux), x_exp=1),
+                        Term(coeff=np.cos(d_mux), px_exp=1),
+                    ]
+                ),
+                y_poly=Polynom(
+                    terms=[
+                        Term(coeff=np.cos(d_muy), y_exp=1),
+                        Term(coeff=np.sin(d_muy), py_exp=1),
+                    ]
+                ),
+                py_poly=Polynom(
+                    terms=[
+                        Term(coeff=-np.sin(d_muy), y_exp=1),
+                        Term(coeff=np.cos(d_muy), py_exp=1),
+                    ]
+                ),
             )
             one_turn_map = Map.composition_Map(
                 one_turn_map, curr_rot, self.max_map_order
@@ -830,22 +865,30 @@ class PolyLine4D:
             d_mux = (self.tw.mux[total] - self.tw.mux[idx]) * 2 * np.pi
             d_muy = (self.tw.muy[total] - self.tw.muy[idx]) * 2 * np.pi
             curr_rot = Map(
-                x_poly=Polynom(terms=[
-                    Term(coeff=np.cos(d_mux), x_exp=1),
-                    Term(coeff=np.sin(d_mux), px_exp=1)
-                ]),
-                px_poly=Polynom(terms=[
-                    Term(coeff=-np.sin(d_mux), x_exp=1),
-                    Term(coeff=np.cos(d_mux), px_exp=1)
-                ]),
-                y_poly=Polynom(terms=[
-                    Term(coeff=np.cos(d_muy), y_exp=1),
-                    Term(coeff=np.sin(d_muy), py_exp=1)
-                ]),
-                py_poly=Polynom(terms=[
-                    Term(coeff=-np.sin(d_muy), y_exp=1),
-                    Term(coeff=np.cos(d_muy), py_exp=1)
-                ])
+                x_poly=Polynom(
+                    terms=[
+                        Term(coeff=np.cos(d_mux), x_exp=1),
+                        Term(coeff=np.sin(d_mux), px_exp=1),
+                    ]
+                ),
+                px_poly=Polynom(
+                    terms=[
+                        Term(coeff=-np.sin(d_mux), x_exp=1),
+                        Term(coeff=np.cos(d_mux), px_exp=1),
+                    ]
+                ),
+                y_poly=Polynom(
+                    terms=[
+                        Term(coeff=np.cos(d_muy), y_exp=1),
+                        Term(coeff=np.sin(d_muy), py_exp=1),
+                    ]
+                ),
+                py_poly=Polynom(
+                    terms=[
+                        Term(coeff=-np.sin(d_muy), y_exp=1),
+                        Term(coeff=np.cos(d_muy), py_exp=1),
+                    ]
+                ),
             )
             one_turn_map = Map.composition_Map(
                 one_turn_map, curr_rot, self.max_map_order

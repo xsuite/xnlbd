@@ -10,6 +10,7 @@ from .poly_elements import (
     PolyOctupole4D,
     PolyReferenceEnergyIncrease4D,
     PolySextupole4D,
+    PolySimpleThinBend4D,
     PolySimpleThinQuadrupole4D,
     PolySRotation4D,
     PolyXYShift4D,
