@@ -149,8 +149,12 @@ def _calc_single_rdt_single_loc(
         raise ValueError("Strengths must be defined for all elements!")
     for i in range(1, feeddown + 1):
         n_mad = n + i - 1
-        curr_kl_ijl = twiss_data[f"k{n_mad:d}l"] + 1j * twiss_data[f"j{n_mad:d}l"]
-        kl_ijl += (curr_kl_ijl * (dx_idy**i)) / factorial(q)
+        try:
+            curr_kl_ijl = twiss_data[f"k{n_mad:d}l"] + 1j * twiss_data[f"j{n_mad:d}l"]
+            kl_ijl += (curr_kl_ijl * (dx_idy**i)) / factorial(q)
+        except KeyError:
+            raise KeyError("Feeddown order {:d} too high with given line, would need magnets of order {:d}"\
+                           .format(feeddown, n_mad))
     kljl_real = np.real(kl_ijl * _i_pow(r + t))
     sources = np.where(kljl_real != 0)[0]
 
@@ -195,7 +199,7 @@ def calculate_rdts(
         - rdts: list of strings indicating the desired resonance
           driving terms; the RDTs should be of the following form:
           "f3000", i.e. always 5 character, starting with "f",
-          followed by 4 integers
+          followed by 4 integersd
         - locations: list of strings, names of line elements where the
           resonance driving terms should be computed, alternatively
           passing "all" returns the resonance driving terms at all

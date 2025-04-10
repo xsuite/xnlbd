@@ -915,7 +915,10 @@ class FPFinder:
             - array containing coordinates in each dimension of
               2^dimensions number of points representing the n-polygon
         """
-
+        if len(limits) != self.n:
+            raise ValueError(
+                f"Length of the limit list does not match number of dimensions ({self.n})!"
+            )
         cartesian_product = itertools.product(*limits)
         region_corners = [np.array(combination) for combination in cartesian_product]
         for i in range(len(region_corners)):
@@ -927,7 +930,7 @@ class FPFinder:
             if self.gbs_part._num_active_particles != 1:
                 raise ValueError(
                     "Search region is (partially) unstable, the \
-initial proper n-polygon cannot be constructed! Check the limits you provided \
+initial proper n-polygon cannot be c    onstructed! Check the limits you provided \
 and try again!"
                 )
 

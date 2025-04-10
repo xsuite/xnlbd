@@ -4,6 +4,7 @@ import pathlib
 import numpy as np
 import xpart as xp  # type: ignore[import-untyped, import-not-found]
 import xtrack as xt  # type: ignore[import-untyped, import-not-found]
+import pytest
 
 from xnlbd.track import Henonmap
 from xnlbd.visualise.fixed_points import FPFinder
@@ -394,7 +395,8 @@ def test_4D_Henon():
     """
     fp_limits = [[-0.4, -0.3], [0.05, 0.15], [0.5, 0.6], [-0.2, -0.1]]
     fp = FPFinder(line, order=1, planes="HV", tol=1e-13, verbose=1)
-    fp_estimate, _ = fp.find_fp(fp_limits, nemitt_x=400, nemitt_y=400, nemitt_z=1)
+    fp_estimate, _ = fp.find_fp(fp_limits, nemitt_x=400, nemitt_y=400, nemitt_z=1
+                                , num_pts = 50)
     fp_estimate_copy = copy.deepcopy(fp_estimate)
 
     """
@@ -437,3 +439,35 @@ def test_4D_Henon():
     assert np.isclose(fp_estimate_copy["px"], particle_at_fp.px, rtol=1e-13)
     assert np.isclose(fp_estimate_copy["y"], particle_at_fp.y, rtol=1e-13)
     assert np.isclose(fp_estimate_copy["py"], particle_at_fp.py, rtol=1e-13)
+
+def test_argument_edge_cases():
+    # Check edge cases for the fixed point finder
+    line = xt.Line.from_json(test_data_folder.joinpath("sps_100GeV_lhc_q26.json"))
+    # Set tune and chromaticity
+    line.vv["qh_setvalue"] = 26.332
+    line.vv["qv_setvalue"] = 26.131061135802028
+    line.vv["qph_setvalue"] = 0.4192872718150393
+    line.vv["qpv_setvalue"] = 0.07550321565116734
+
+    """
+    Find stable and unstable fixed points
+    """
+    ufp_limits = [[2.0, 12.0], [4.0, 12.0], [-2,2], [-2,2]]
+
+    fp = FPFinder(line, order=3, planes="H", tol=1e-13, verbose=1)  
+    with pytest.raises(ValueError) as excinfo:
+        ufp, _ = fp.find_fp(ufp_limits, nemitt_x=1e-6, nemitt_y=1e-6, nemitt_z=1)  
+        # Check whether fp finder failt due to wrong number of bounds
+        assert "Length of the limit list" in str(excinfo.value)
+    ufp_limits = [[2.0, 12.0], [4.0, 12.0]]
+    with pytest.raises(ValueError) as excinfo:
+        ufp, _ = fp.find_fp(ufp_limits, nemitt_x=0, nemitt_y=0, nemitt_z=1) 
+        # Check whether noramlisation fails if invalid emittance is given
+        assert "emittances" in str(excinfo.value)
+    
+    ufp_limits = [[2.0, 12.0], [4.0, 12.0]]
+    fp = FPFinder(line, order=3, planes="HV", tol=1e-13, verbose=1)  
+    with pytest.raises(ValueError) as excinfo:
+        ufp, _ = fp.find_fp(ufp_limits, nemitt_x=1e-6, nemitt_y=1e-6, nemitt_z=1)  
+        # Check whether fp finder failt due to wrong number of bounds
+        assert "Length of the limit list" in str(excinfo.value)

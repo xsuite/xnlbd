@@ -1105,6 +1105,8 @@ class PolyLine4D:
 
         Input:
             - max_nf_order: integer, maximum order of the normal form
+            - res_space_dim: integer, dimension of the resonant space, 0 if
+              nonresonant, 1 if single resonance, 2 if double resonance
             - res_case: integer, 0 for nonresonant normal forms, 1 for exactly
               resonant normal forms, 2 for quasiresonant normal forms
             - res_eig: list of complex resonant eigenvalues,
@@ -1112,7 +1114,7 @@ class PolyLine4D:
               $e^{2i\pi Q_{y,res}}$, $e^{-2i\pi Q_{y,res}}$], only needed if
               res_case is 1 or 2
             - res_basis1: list or integers, [n, m] which satisfy the resonance
-              condition n*Q_x+m*Q_y=p, only needed if res_space_dim is 1 or 1
+              condition n*Q_x+m*Q_y=p, only needed if res_space_dim is 1 or 2
             - res_basis2: list or integers, [n, m] which satisfy the resonance
               condition n*Q_x+m*Q_y=p for a second resonance, only needed if
               res_space_dim is 2
