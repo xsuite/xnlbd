@@ -55,7 +55,7 @@ def main():
     drift2 = xt.Drift(length=0.0)
 
     line1 = xt.Line(
-        elements=[henon1, drift1], element_names=["henon", "zero_len_drift"]
+        elements=[drift1, henon1], element_names=["zero_len_drift", "henon"]
     )
     line1.particle_ref = xt.Particles(mass0=xp.PROTON_MASS_EV, p0c=4e11)
     line1.twiss_default["method"] = "4d"
@@ -63,7 +63,7 @@ def main():
     line1.build_tracker()
 
     line2 = xt.Line(
-        elements=[henon2, drift2], element_names=["henon", "zero_len_drift"]
+        elements=[drift2, henon2], element_names=["zero_len_drift", "henon"]
     )
     line2.particle_ref = xt.Particles(mass0=xp.PROTON_MASS_EV, p0c=4e11)
     line2.twiss_default["method"] = "4d"
