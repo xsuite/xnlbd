@@ -10,6 +10,15 @@ from xnlbd.visualise.orbits import get_orbit_points
 
 def main():
     """
+    Example script of computing the normalising transformation and interpolating
+    Hamiltonian for the Henon map in a quasiresonant (4th order) case as well as
+    in a nonresonant case. The orbits are plotted in physical space,
+    Courant-Snyder normalised coordinates and normal form coordinates. The
+    contours of the interpolating Hamiltonian are also plotted in normal form
+    space.
+    """
+
+    """
     Set up line with Henon map element
     """
     alpha_x = 1.0
@@ -20,8 +29,6 @@ def main():
     Qy_res1 = 0.29
     Qx1 = 0.252
     Qy1 = 0.29
-    Qx_res2 = 1.0 / 4.0
-    Qy_res2 = 0.18
     Qx2 = 0.3
     Qy2 = 0.18
     K2 = 1.0
