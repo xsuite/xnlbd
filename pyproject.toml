@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "xnlbd.__version__"}
+version = {attr = "xnlbd._version.__version__"}
 
 [tool.setuptools.package-data]
 xnlbd = [
@@ -60,4 +60,4 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/deveres99/xnlbd"
+"Homepage" = "https://github.com/xsuite/xnlbd"
