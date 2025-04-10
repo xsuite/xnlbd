@@ -45,7 +45,7 @@ class NormalForm4D:
               $e^{2i\pi Q_{y,res}}$, $e^{-2i\pi Q_{y,res}}$], only needed if
               res_case is 1 or 2
             - res_basis1: list or integers, [n, m] which satisfy the resonance
-              condition n*Q_x+m*Q_y=p, only needed if res_space_dim is 1 or 1
+              condition n*Q_x+m*Q_y=p, only needed if res_space_dim is 1 or 2
             - res_basis2: list or integers, [n, m] which satisfy the resonance
               condition n*Q_x+m*Q_y=p for a second resonance, only needed if
               res_space_dim is 2
@@ -110,9 +110,13 @@ class NormalForm4D:
         self._Resto1: list[list[complex]] | None = None
         self._Resto2: list[list[complex]] | None = None
 
-        if res_case != 0 and res_eig is None:
+        if res_case != 0 and (res_eig is None or len(res_eig) != 4) :
             raise ValueError(
-                "The resonant eigenvalues must be provided in the resonant and quasiresonant case!"
+                "The 4 resonant eigenvalues must be provided in the resonant and quasiresonant case! \n" \
+                + "You provided {:}".format(res_eig)
+
+                 
+                
             )
         if res_space_dim == 1 and res_basis1 is None:
             raise ValueError(
