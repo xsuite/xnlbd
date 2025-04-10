@@ -15,7 +15,7 @@ echo "========================================================================"
 echo "Releasing $NAME v$VER on PyPI"
 echo "========================================================================"
 
-python setup.py sdist
+python -m build --sdist
 twine upload dist/*
 rm -r dist/ *.egg-info
 
