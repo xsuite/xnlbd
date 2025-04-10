@@ -113,7 +113,7 @@ class NormedParticles(xo.HybridClass):
         Raises
         ------
         ValueError
-            If neither part nor _capacity is given.
+            If neither part nor _capacity is given. Or if emittance is non-positive.
         """
         if "_xobject" in kwargs.keys():
             # Initialize xobject
@@ -126,7 +126,9 @@ class NormedParticles(xo.HybridClass):
         else:
             if _capacity is None:
                 raise ValueError("Either part or _capacity must be given")
-
+        if nemitt_x <= 0 or nemitt_y <= 0 or nemitt_z <= 0:
+            raise ValueError("The given  normalised emittances are non-positive: \n " \
+            "e_x = {:.2g}\n e_y = {:.2g}\n e_z = {:.2g} ".format(nemitt_x, nemitt_y, nemitt_z))
         # Allocate the xobject of the right size
         self.xoinitialize(
             _context=kwargs.pop("_context", None),

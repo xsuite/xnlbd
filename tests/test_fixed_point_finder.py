@@ -463,7 +463,7 @@ def test_argument_edge_cases():
     with pytest.raises(ValueError) as excinfo:
         ufp, _ = fp.find_fp(ufp_limits, nemitt_x=0, nemitt_y=0, nemitt_z=1) 
         # Check whether noramlisation fails if invalid emittance is given
-        assert "emittance" in str(excinfo.value)
+        assert "emittances" in str(excinfo.value)
     
     ufp_limits = [[2.0, 12.0], [4.0, 12.0]]
     fp = FPFinder(line, order=3, planes="HV", tol=1e-13, verbose=1)  

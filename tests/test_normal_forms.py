@@ -555,4 +555,3 @@ def test_argument_edge_cases():
         res_basis1=[2, 1],
         )
         assert "eigenvalues" in str(excinfo.value)
-test_argument_edge_cases()
