@@ -1,7 +1,9 @@
 #ifndef XNLBD_NORM_TO_PHYS_H
 #define XNLBD_NORM_TO_PHYS_H
 
-/*gpukern*/
+#include <headers/track.h>
+
+GPUKERN
 void norm_to_phys(ParticlesData part, NormedParticlesData norm_part, const int64_t nelem)
 {
     const double gemitt_x = NormedParticlesData_get_twiss_data(norm_part, 0) / ParticlesData_get_beta0(part, 0) / ParticlesData_get_gamma0(part, 0);
@@ -44,4 +46,4 @@ void norm_to_phys(ParticlesData part, NormedParticlesData norm_part, const int64
     } // end_vectorize
 }
 
-#endif /* XNLBD_NORM_TO_PHYS_H */
+#endif // XNLBD_NORM_TO_PHYS_H

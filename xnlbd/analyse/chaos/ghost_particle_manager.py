@@ -209,7 +209,10 @@ class GhostParticleManager(xo.HybridClass):
         self._capacity = self._part._capacity
 
         self._capacity = self._part._capacity
-        self.compile_kernels(only_if_needed=True)
+        self.compile_kernels(
+            only_if_needed=True,
+            extra_compile_args=(f"-I{xt.__path__[0]}",)
+        )
 
     def add_displacement(
         self, module=1e-6, direction="x", custom_direction=None, ghost_name=None

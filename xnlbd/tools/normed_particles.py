@@ -170,7 +170,10 @@ class NormedParticles(xo.HybridClass):
             np.linalg.inv(twiss.W_matrix[idx_pos]).flatten()
         )
 
-        self.compile_kernels(only_if_needed=True)
+        self.compile_kernels(
+            only_if_needed=True, 
+            extra_compile_args=(f"-I{xt.__path__[0]}",)
+        )
 
         if part is not None:
             self.phys_to_norm(part)

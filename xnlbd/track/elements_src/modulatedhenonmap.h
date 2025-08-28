@@ -1,7 +1,9 @@
 #ifndef XNLBD_MODULATEDHENONMAP_H
 #define XNLBD_MODULATEDHENONMAP_H
 
-/*gpufun*/
+#include <headers/track.h>
+
+GPUFUN
 void ModulatedHenonmap_track_local_particle(ModulatedHenonmapData el, LocalParticle* part0){
     int const n_turns = ModulatedHenonmapData_get_n_turns(el);
     int const n_par_multipoles = ModulatedHenonmapData_get_n_par_multipoles(el);
@@ -204,4 +206,4 @@ void ModulatedHenonmap_track_local_particle(ModulatedHenonmapData el, LocalParti
 
 }
 
-#endif /* XNLBD_MODULATEDHENONMAP_H */
+#endif // XNLBD_MODULATEDHENONMAP_H

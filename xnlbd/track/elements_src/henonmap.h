@@ -1,8 +1,10 @@
 #ifndef XNLBD_HENONMAP_H
 #define XNLBD_HENONMAP_H
 
+#include <headers/track.h>
 
-/*gpufun*/
+
+GPUFUN
 void Henonmap_track_local_particle(HenonmapData el, LocalParticle* part0){
 
     double const sin_omega_x = HenonmapData_get_sin_omega_x(el);
@@ -200,4 +202,4 @@ void Henonmap_track_local_particle(HenonmapData el, LocalParticle* part0){
 
 }
 
-#endif /* XNLBD_HENONMAP_H */
+#endif // XNLBD_HENONMAP_H

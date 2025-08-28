@@ -1,7 +1,9 @@
 #ifndef XNLBD_RANDOMNORMALKICK_H
 #define XNLBD_RANDOMNORMALKICK_H
 
-/*gpufun*/
+#include <headers/track.h>
+
+GPUFUN
 void RandomNormalKick_track_local_particle(RandomNormalKickData el, LocalParticle *part0)
 {
     //start_per_particle_block (part0->part)
@@ -50,4 +52,4 @@ void RandomNormalKick_track_local_particle(RandomNormalKickData el, LocalParticl
     //end_per_particle_block
 }
 
-#endif /* XNLBD_RANDOMNORMALKICK_H */
+#endif // XNLBD_RANDOMNORMALKICK_H
