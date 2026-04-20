@@ -25,7 +25,6 @@ from xtrack.beam_elements.elements import (  # type: ignore[import-untyped, impo
     Drift,
     Elens,
     FirstOrderTaylorMap,
-    LinearTransferMatrix,
     LineSegmentMap,
     Marker,
     Multipole,
@@ -46,10 +45,6 @@ from xtrack.beam_elements.elements import (  # type: ignore[import-untyped, impo
     XYShift,
     YRotation,
     ZetaShift,
-)
-from xtrack.line import (  # type: ignore[import-untyped, import-not-found]
-    LineVars,
-    VarValues,
 )
 from xtrack.particles.particles import (  # type: ignore[import-untyped, import-not-found]
     Particles,
