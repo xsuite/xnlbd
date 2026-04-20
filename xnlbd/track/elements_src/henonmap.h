@@ -1,7 +1,7 @@
 #ifndef XNLBD_HENONMAP_H
 #define XNLBD_HENONMAP_H
 
-#include <headers/track.h>
+#include "xtrack/headers/track.h"
 
 
 GPUFUN

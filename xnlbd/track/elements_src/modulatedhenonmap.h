@@ -1,7 +1,7 @@
 #ifndef XNLBD_MODULATEDHENONMAP_H
 #define XNLBD_MODULATEDHENONMAP_H
 
-#include <headers/track.h>
+#include "xtrack/headers/track.h"
 
 GPUFUN
 void ModulatedHenonmap_track_local_particle(ModulatedHenonmapData el, LocalParticle* part0){

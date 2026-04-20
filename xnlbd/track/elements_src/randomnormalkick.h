@@ -1,7 +1,7 @@
 #ifndef XNLBD_RANDOMNORMALKICK_H
 #define XNLBD_RANDOMNORMALKICK_H
 
-#include <headers/track.h>
+#include "xtrack/headers/track.h"
 
 GPUFUN
 void RandomNormalKick_track_local_particle(RandomNormalKickData el, LocalParticle *part0)
