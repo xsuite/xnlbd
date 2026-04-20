@@ -12,10 +12,9 @@ from xnlbd.tools import NormedParticles
 @for_all_test_contexts
 def test_normed_particles(test_context):
     # First load the example collider
-    collider = xt.Multiline.from_json(
-        pathlib.Path(__file__).parent.joinpath("test_data/example_hl_lhc_collider.json")
+    line = xt.load(
+        pathlib.Path(__file__).parent.joinpath("test_data/example_hl_lhc_b1.json")
     )
-    line = collider["lhcb1"]
     line.build_tracker(_context=test_context)
 
     # evaluate the twiss
