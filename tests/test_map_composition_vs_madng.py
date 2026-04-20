@@ -254,7 +254,7 @@ def test_fodo_map():
         file.write(seq)
 
     poly_line = PolyLine4D(
-        line=line,
+        line_in=line,
         part=line.particle_ref,
         max_ele_order=8,
         max_map_order=6,
@@ -379,7 +379,7 @@ def test_fodo_1sext_map():
         file.write(seq)
 
     poly_line = PolyLine4D(
-        line=line,
+        line_in=line,
         part=line.particle_ref,
         max_ele_order=8,
         max_map_order=6,
@@ -504,7 +504,7 @@ def test_fodo_2sext_map():
         file.write(seq)
 
     poly_line = PolyLine4D(
-        line=line,
+        line_in=line,
         part=line.particle_ref,
         max_ele_order=8,
         max_map_order=6,
@@ -629,7 +629,7 @@ def test_fodo_1oct_map():
         file.write(seq)
 
     poly_line = PolyLine4D(
-        line=line,
+        line_in=line,
         part=line.particle_ref,
         max_ele_order=8,
         max_map_order=6,
@@ -754,7 +754,7 @@ def test_fodo_2oct_map():
         file.write(seq)
 
     poly_line = PolyLine4D(
-        line=line,
+        line_in=line,
         part=line.particle_ref,
         max_ele_order=8,
         max_map_order=6,
@@ -879,7 +879,7 @@ def test_fodo_1sext1oct_map():
         file.write(seq)
 
     poly_line = PolyLine4D(
-        line=line,
+        line_in=line,
         part=line.particle_ref,
         max_ele_order=8,
         max_map_order=6,
