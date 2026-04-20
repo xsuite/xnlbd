@@ -815,10 +815,10 @@ class PolyLine4D:
                 nonlin_poly_ele_idx.append(i)
                 nonlin_poly_ele_norm.append(self._get_norm_map_at_ele(i))
 
-        idx = 0
-        for i in range(len(nonlin_poly_ele_idx)):
-            d_mux = (self.tw.mux[nonlin_poly_ele_idx[i]] - self.tw.mux[idx]) * 2 * np.pi
-            d_muy = (self.tw.muy[nonlin_poly_ele_idx[i]] - self.tw.muy[idx]) * 2 * np.pi
+        if len(nonlin_poly_ele_idx) == 0:
+            idx = 0
+            d_mux = (self.tw.mux[-1] - self.tw.mux[idx]) * 2 * np.pi
+            d_muy = (self.tw.muy[-1] - self.tw.muy[idx]) * 2 * np.pi
             curr_rot = Map(
                 x_poly=Polynom(
                     terms=[
@@ -848,49 +848,83 @@ class PolyLine4D:
             one_turn_map = Map.composition_Map(
                 one_turn_map, curr_rot, self.max_map_order
             )
-            one_turn_map = Map.composition_Map(
-                one_turn_map, nonlin_poly_ele_norm[i], self.max_map_order
-            )
-            idx = nonlin_poly_ele_idx[i]
-            progress = (nonlin_poly_ele_idx[i] / (total - 1)) * 100
-            sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
-            sys.stdout.flush()
+        else:
+            idx = 0
+            for i in range(len(nonlin_poly_ele_idx)):
+                d_mux = (self.tw.mux[nonlin_poly_ele_idx[i]] - self.tw.mux[idx]) * 2 * np.pi
+                d_muy = (self.tw.muy[nonlin_poly_ele_idx[i]] - self.tw.muy[idx]) * 2 * np.pi
+                curr_rot = Map(
+                    x_poly=Polynom(
+                        terms=[
+                            Term(coeff=np.cos(d_mux), x_exp=1),
+                            Term(coeff=np.sin(d_mux), px_exp=1),
+                        ]
+                    ),
+                    px_poly=Polynom(
+                        terms=[
+                            Term(coeff=-np.sin(d_mux), x_exp=1),
+                            Term(coeff=np.cos(d_mux), px_exp=1),
+                        ]
+                    ),
+                    y_poly=Polynom(
+                        terms=[
+                            Term(coeff=np.cos(d_muy), y_exp=1),
+                            Term(coeff=np.sin(d_muy), py_exp=1),
+                        ]
+                    ),
+                    py_poly=Polynom(
+                        terms=[
+                            Term(coeff=-np.sin(d_muy), y_exp=1),
+                            Term(coeff=np.cos(d_muy), py_exp=1),
+                        ]
+                    ),
+                )
+                one_turn_map = Map.composition_Map(
+                    one_turn_map, curr_rot, self.max_map_order
+                )
+                one_turn_map = Map.composition_Map(
+                    one_turn_map, nonlin_poly_ele_norm[i], self.max_map_order
+                )
+                idx = nonlin_poly_ele_idx[i]
+                progress = (nonlin_poly_ele_idx[i] / (total - 1)) * 100
+                sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
+                sys.stdout.flush()
 
-        if nonlin_poly_ele_idx[-1] != (total - 1):
-            d_mux = (self.tw.mux[total] - self.tw.mux[idx]) * 2 * np.pi
-            d_muy = (self.tw.muy[total] - self.tw.muy[idx]) * 2 * np.pi
-            curr_rot = Map(
-                x_poly=Polynom(
-                    terms=[
-                        Term(coeff=np.cos(d_mux), x_exp=1),
-                        Term(coeff=np.sin(d_mux), px_exp=1),
-                    ]
-                ),
-                px_poly=Polynom(
-                    terms=[
-                        Term(coeff=-np.sin(d_mux), x_exp=1),
-                        Term(coeff=np.cos(d_mux), px_exp=1),
-                    ]
-                ),
-                y_poly=Polynom(
-                    terms=[
-                        Term(coeff=np.cos(d_muy), y_exp=1),
-                        Term(coeff=np.sin(d_muy), py_exp=1),
-                    ]
-                ),
-                py_poly=Polynom(
-                    terms=[
-                        Term(coeff=-np.sin(d_muy), y_exp=1),
-                        Term(coeff=np.cos(d_muy), py_exp=1),
-                    ]
-                ),
-            )
-            one_turn_map = Map.composition_Map(
-                one_turn_map, curr_rot, self.max_map_order
-            )
-            progress = 100
-            sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
-            sys.stdout.flush()
+            if nonlin_poly_ele_idx[-1] != (total - 1):
+                d_mux = (self.tw.mux[total] - self.tw.mux[idx]) * 2 * np.pi
+                d_muy = (self.tw.muy[total] - self.tw.muy[idx]) * 2 * np.pi
+                curr_rot = Map(
+                    x_poly=Polynom(
+                        terms=[
+                            Term(coeff=np.cos(d_mux), x_exp=1),
+                            Term(coeff=np.sin(d_mux), px_exp=1),
+                        ]
+                    ),
+                    px_poly=Polynom(
+                        terms=[
+                            Term(coeff=-np.sin(d_mux), x_exp=1),
+                            Term(coeff=np.cos(d_mux), px_exp=1),
+                        ]
+                    ),
+                    y_poly=Polynom(
+                        terms=[
+                            Term(coeff=np.cos(d_muy), y_exp=1),
+                            Term(coeff=np.sin(d_muy), py_exp=1),
+                        ]
+                    ),
+                    py_poly=Polynom(
+                        terms=[
+                            Term(coeff=-np.sin(d_muy), y_exp=1),
+                            Term(coeff=np.cos(d_muy), py_exp=1),
+                        ]
+                    ),
+                )
+                one_turn_map = Map.composition_Map(
+                    one_turn_map, curr_rot, self.max_map_order
+                )
+                progress = 100
+                sys.stdout.write(f"\rCombining line elements: {progress:.2f}%")
+                sys.stdout.flush()
 
         print("\nCombination of all line elements finished!")
 
