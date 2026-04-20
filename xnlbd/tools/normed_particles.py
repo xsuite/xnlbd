@@ -126,9 +126,12 @@ class NormedParticles(xo.HybridClass):
         else:
             if _capacity is None:
                 raise ValueError("Either part or _capacity must be given")
-        if nemitt_x <= 0 or nemitt_y <= 0 or nemitt_z <= 0:
-            raise ValueError("The given  normalised emittances are non-positive: \n " \
-            "e_x = {:.2g}\n e_y = {:.2g}\n e_z = {:.2g} ".format(nemitt_x, nemitt_y, nemitt_z))
+        if nemitt_x <= 0 or nemitt_y <= 0:
+            raise ValueError("The given transverse normalised emittances are non-positive: \n " \
+            "e_x = {:.2g}\n e_y = {:.2g} ".format(nemitt_x, nemitt_y))
+        if nemitt_z is not None and nemitt_z <= 0:
+            raise ValueError("The given longitudinal normalised emittance is non-positive: \n " \
+            "e_z = {:.2g} ".format(nemitt_z))
         # Allocate the xobject of the right size
         self.xoinitialize(
             _context=kwargs.pop("_context", None),
