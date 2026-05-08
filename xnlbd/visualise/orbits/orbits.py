@@ -741,7 +741,7 @@ def get_orbit_points(
             "Incorrect plane requested! Must be 'H', 'V', 'L', 'HV' or 'HVL'."
         )
     elif planes in ["H", "V", "HV"]:
-        twiss_bc = line_int.twiss(
+        twiss_bc = line_int.twiss4d(
             continue_on_closed_orbit_error=False, delta0=delta0, co_guess=co_guess
         )
     else:
@@ -755,7 +755,7 @@ def get_orbit_points(
     # Twiss
     if planes in ["H", "V", "HV"]:
         try:
-            twiss = line_int.twiss(continue_on_closed_orbit_error=False, delta0=delta0)
+            twiss = line_int.twiss4d(continue_on_closed_orbit_error=False, delta0=delta0)
         except ValueError:
             part_on_co_at_ele = xt.Particles(
                 p0c=twiss_bc.particle_on_co.p0c,
@@ -786,7 +786,7 @@ def get_orbit_points(
                 zeta=twiss_bc.zeta[twiss_bc.name == element],
                 ptau=twiss_bc.ptau[twiss_bc.name == element],
             )
-            twiss = line_int.twiss(
+            twiss = line_int.twiss4d(
                 continue_on_closed_orbit_error=False,
                 delta0=delta0,
                 particle_on_co=part_on_co_at_ele,
