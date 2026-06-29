@@ -20,6 +20,7 @@ from xtrack.beam_elements.elements import (  # type: ignore[import-untyped, impo
     Bend,
     Cavity,
     CombinedFunctionMagnet,
+    CrabCavity,
     DipoleEdge,
     DipoleFringe,
     Drift,
@@ -146,14 +147,19 @@ class PolyLine4D:
         self.max_map_order: int = max_map_order
         self.max_ele_order: int = max_ele_order
 
-        self.tw = line.twiss(continue_on_closed_orbit_error=False, delta0=part.delta[0])
+        self.tw = line.twiss4d(continue_on_closed_orbit_error=False, delta0=part.delta[0])
         self.W_matrix: list[np.ndarray] = []
         self.W_matrix_inv: list[np.ndarray] = []
         self.parts: list[Particles] = []
         self.parts_norm: list[NormedParticles] = []
-        for i in range(len(line.element_names)):
+        total = len(line.element_names)
+        W_inv_all = np.linalg.inv(self.tw.W_matrix)
+        for i in range(total):
+            progress = (i / (total - 1)) * 100
+            sys.stdout.write(f"\rGetting normalisation for line elements: {progress:.2f}%")
+            sys.stdout.flush()
             self.W_matrix.append(self.tw.W_matrix[i].flatten())
-            self.W_matrix_inv.append(np.linalg.inv(self.tw.W_matrix[i]).flatten())
+            self.W_matrix_inv.append(W_inv_all[i].flatten())
             part0 = xt.Particles(
                 x=self.tw.x[i],
                 px=self.tw.px[i],
@@ -171,6 +177,7 @@ class PolyLine4D:
             )
             part_norm0.phys_to_norm(part0)
             self.parts_norm.append(part_norm0)
+        print()
 
         self.beta0: float = part.beta0
         self.gamma0: float = part.gamma0
@@ -184,7 +191,11 @@ class PolyLine4D:
         element_names = line.element_names
         elements = line.elements
 
+        total = len(element_names)
         for i, name in enumerate(element_names):
+            progress = (i / (total - 1)) * 100
+            sys.stdout.write(f"\rConverting line elements: {progress:.2f}%")
+            sys.stdout.flush()
             try:
                 ele = elements[i].get_equivalent_element()
             except AttributeError:
@@ -218,6 +229,9 @@ class PolyLine4D:
                     )
                 case Cavity():
                     self.poly_elements.append(PolyCavity4D())
+                case CrabCavity():
+                    self.poly_elements.append(PolyIdentity4D())
+                    warnings.warn("CrabCavity not implemented, replaced with identity!")
                 case XYShift():
                     self.poly_elements.append(PolyXYShift4D())
                 case SRotation():
@@ -327,6 +341,7 @@ class PolyLine4D:
                     )
                 case _:
                     raise ValueError(f"{ele} is not implemented.")
+        print()
 
     def set_max_map_order(self, max_map_order: int) -> None:
         """
@@ -1139,13 +1154,13 @@ class PolyLine4D:
             - res_case: integer, 0 for nonresonant normal forms, 1 for exactly
               resonant normal forms, 2 for quasiresonant normal forms
             - res_eig: list of complex resonant eigenvalues,
-              i.e. [$e^{2i\pi Q_{x,res}}$, $e^{-2i\pi Q_{x,res}}$,
-              $e^{2i\pi Q_{y,res}}$, $e^{-2i\pi Q_{y,res}}$], only needed if
+              i.e. [$e^{2i\\pi Q_{x,res}}$, $e^{-2i\\pi Q_{x,res}}$,
+              $e^{2i\\pi Q_{y,res}}$, $e^{-2i\\pi Q_{y,res}}$], only needed if
               res_case is 1 or 2
-            - res_basis1: list or integers, [n, m] which satisfy the resonance
-              condition n*Q_x+m*Q_y=p, only needed if res_space_dim is 1 or 2
-            - res_basis2: list or integers, [n, m] which satisfy the resonance
-              condition n*Q_x+m*Q_y=p for a second resonance, only needed if
+            - res_basis1: list of integers, [n, m] which satisfy the resonance
+              condition $n*Q_x+m*Q_y=p$, only needed if res_space_dim is 1 or 2
+            - res_basis2: list of integers, [n, m] which satisfy the resonance
+              condition $n*Q_x+m*Q_y=p$ for a second resonance, only needed if
               res_space_dim is 2
 
         Output:
