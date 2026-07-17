@@ -17,4 +17,5 @@ from .poly_elements import (
     PolyZetaShift4D,
 )
 from .poly_line import PolyLine4D
-from .polynom_base import Map, Polynom, Term
+from .polynom_base import Map, Polynom, Term, ParametricMap, ParametricPolynom, ParametricTerm, _ParamPoly, _make_fast_coeff
+from .one_turn_map import OneTurnMap4D, ParametricOneTurnMap4D

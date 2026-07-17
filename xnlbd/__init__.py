@@ -31,7 +31,15 @@ from .analyse.normal_forms import (
     PolyXYShift4D,
     PolyZetaShift4D,
     Term,
+    ParametricMap,
+    ParametricPolynom,
+    ParametricTerm,
+    _ParamPoly,
+    _make_fast_coeff,
+    OneTurnMap4D, 
+    ParametricOneTurnMap4D
 )
+from .analyse.naem import naem_2D
 from .analyse.rdt import calculate_rdts
 from .tools import H5pyWriter, LocalWriter, NormedParticles, birkhoff_weights
 from .track import Henonmap, ModulatedHenonmap, RandomNormalKick
