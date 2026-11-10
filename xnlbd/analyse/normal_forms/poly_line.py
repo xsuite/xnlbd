@@ -8,7 +8,7 @@ import numpy as np
 import xtrack as xt  # type: ignore[import-untyped, import-not-found]
 from xdeps.refs import BaseRef  # type: ignore[import-untyped, import-not-found]
 from xtrack import Line  # type: ignore[import-untyped, import-not-found]
-from xtrack.beam_elements.apertures import (  # type: ignore[import-untyped, import-not-found]
+from xtrack.beam_elements import (  # type: ignore[import-untyped, import-not-found]
     LimitEllipse,
     LimitPolygon,
     LimitRacetrack,
@@ -16,7 +16,7 @@ from xtrack.beam_elements.apertures import (  # type: ignore[import-untyped, imp
     LimitRectEllipse,
     LongitudinalLimitRect,
 )
-from xtrack.beam_elements.elements import (  # type: ignore[import-untyped, import-not-found]
+from xtrack.beam_elements import (  # type: ignore[import-untyped, import-not-found]
     Bend,
     Cavity,
     CombinedFunctionMagnet,
