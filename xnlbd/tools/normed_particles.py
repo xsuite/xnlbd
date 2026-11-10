@@ -159,7 +159,7 @@ class NormedParticles(xo.HybridClass):
                     twiss.y[idx_pos],
                     twiss.py[idx_pos],
                     twiss.zeta[idx_pos],
-                    twiss.ptau[idx_pos],
+                    twiss.pzeta[idx_pos],
                     nemitt_z if nemitt_z is not None else np.nan,
                 ]
             )
